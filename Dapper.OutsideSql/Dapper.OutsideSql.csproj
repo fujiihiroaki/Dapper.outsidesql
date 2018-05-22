@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <RootNamespace>Jiifureit.Dapper.OutsideSql</RootNamespace>
+    <Authors>Hiroaki Fujii</Authors>
+    <Product>Jiifureit.Dapper.OutsideSql</Product>
+    <PackageId>Jiifureit.Dapper.OutsideSql</PackageId>
+    <Copyright>Hiroaki Fujii, all right reserved</Copyright>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="TestProject\**" />
+    <EmbeddedResource Remove="TestProject\**" />
+    <None Remove="TestProject\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Dapper" Version="1.50.5" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="2.8.0" />
+    <PackageReference Include="NLog" Version="4.5.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="ReadJEnc">
+      <HintPath>..\lib\ReadJEnc.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>
