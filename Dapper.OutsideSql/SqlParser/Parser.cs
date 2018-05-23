@@ -3,37 +3,34 @@
 // *  See LICENSE in the source repository root for complete license information. 
 // */
 
-using System;
+#region using
+
 using System.Collections;
 using Seasar.Dao;
 using Seasar.Dao.Node;
 using Seasar.Dao.Parser;
 using static System.String;
 
+#endregion
+
 namespace Jiifureit.Dapper.OutsideSql.SqlParser
 {
-    public  class Parser
+    public class Parser
     {
-        private readonly ISqlTokenizer _tokenizer;
         private readonly Stack _nodeStack = new Stack();
+        private readonly ISqlTokenizer _tokenizer;
 
         public Parser(string sql)
         {
             sql = sql.Trim();
-            if (sql.EndsWith(";"))
-            {
-                sql = sql.Substring(0, sql.Length - 1);
-            }
+            if (sql.EndsWith(";")) sql = sql.Substring(0, sql.Length - 1);
             _tokenizer = new SqlTokenizerImpl(sql);
         }
 
         public INode Parse()
         {
             Push(new ContainerNode());
-            while (TokenType.EOF != _tokenizer.Next())
-            {
-                ParseToken();
-            }
+            while (TokenType.EOF != _tokenizer.Next()) ParseToken();
             return Pop();
         }
 
@@ -59,10 +56,7 @@ namespace Jiifureit.Dapper.OutsideSql.SqlParser
         protected void ParseSql()
         {
             var sql = _tokenizer.Token;
-            if (IsElseMode())
-            {
-                sql = sql.Replace("--", Empty);
-            }
+            if (IsElseMode()) sql = sql.Replace("--", Empty);
             INode node = Peek();
 
             if ((node is IfNode || node is ElseNode) && node.ChildSize == 0)
@@ -72,13 +66,9 @@ namespace Jiifureit.Dapper.OutsideSql.SqlParser
                 var token = st.SkipToken();
                 st.SkipWhitespace();
                 if ("AND".Equals(token.ToUpper()) || "OR".Equals(token.ToUpper()))
-                {
                     node.AddChild(new PrefixSqlNode(st.Before, st.After));
-                }
                 else
-                {
                     node.AddChild(new SqlNode(sql));
-                }
             }
             else
             {
@@ -112,10 +102,7 @@ namespace Jiifureit.Dapper.OutsideSql.SqlParser
         protected void ParseIf()
         {
             var condition = _tokenizer.Token.Substring(2).Trim();
-            if (IsNullOrEmpty(condition))
-            {
-                throw new IfConditionNotFoundRuntimeException();
-            }
+            if (IsNullOrEmpty(condition)) throw new IfConditionNotFoundRuntimeException();
             var ifNode = new IfNode(condition);
             Peek().AddChild(ifNode);
             Push(ifNode);
@@ -140,19 +127,18 @@ namespace Jiifureit.Dapper.OutsideSql.SqlParser
                     Pop();
                     return;
                 }
+
                 ParseToken();
             }
+
             throw new EndCommentNotFoundRuntimeException();
         }
 
         protected void ParseElse()
         {
             var parent = Peek();
-            if (!(parent is IfNode))
-            {
-                return;
-            }
-            var ifNode = (IfNode)Pop();
+            if (!(parent is IfNode)) return;
+            var ifNode = (IfNode) Pop();
             var elseNode = new ElseNode();
             ifNode.ElseNode = elseNode;
             Push(elseNode);
@@ -164,17 +150,11 @@ namespace Jiifureit.Dapper.OutsideSql.SqlParser
             var expr = _tokenizer.Token;
             var s = _tokenizer.SkipToken();
             if (s.StartsWith("(") && s.EndsWith(")"))
-            {
                 Peek().AddChild(CreateParenBindVariableNode(expr));
-            }
             else if (expr.StartsWith("$"))
-            {
                 Peek().AddChild(CreateEmbeddedValueNode(expr.Substring(1)));
-            }
             else
-            {
                 Peek().AddChild(CreateBindVariableNode(expr));
-            }
         }
 
         protected void ParseBindVariable()
@@ -200,12 +180,12 @@ namespace Jiifureit.Dapper.OutsideSql.SqlParser
 
         protected INode Pop()
         {
-            return (INode)_nodeStack.Pop();
+            return (INode) _nodeStack.Pop();
         }
 
         protected INode Peek()
         {
-            return (INode)_nodeStack.Peek();
+            return (INode) _nodeStack.Peek();
         }
 
         protected void Push(INode node)
@@ -216,22 +196,18 @@ namespace Jiifureit.Dapper.OutsideSql.SqlParser
         protected bool IsElseMode()
         {
             for (var i = 0; i < _nodeStack.Count; ++i)
-            {
                 if (_nodeStack.ToArray()[i] is ElseNode)
-                {
                     return true;
-                }
-            }
             return false;
         }
 
         private static bool _IsTargetComment(string comment)
         {
             return !IsNullOrEmpty(comment)
-                && _IsCSharpIdentifierStart(comment.ToCharArray()[0]);
+                   && _IsCSharpIdentifierStart(comment.ToCharArray()[0]);
         }
 
-        private static bool _IsCSharpIdentifierStart(Char c)
+        private static bool _IsCSharpIdentifierStart(char c)
         {
             return char.IsLetterOrDigit(c) || c == '_' || c == '\\' || c == '$' || c == '@';
         }

@@ -5,6 +5,7 @@ using Jiifureit.Dapper.OutsideSql.SqlParser;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Seasar.Dao;
 using Seasar.Dao.Context;
+using Seasar.Framework.Util;
 
 namespace Dapper.OutsideSql.Test
 {
@@ -31,10 +32,10 @@ namespace Dapper.OutsideSql.Test
             var parser = new Parser(sql);
             var rootNode = parser.Parse();
 
-            ICommandContext ctx = new CommandContextImpl();
-            rootNode.Accept(ctx);
+            ICommandContext ctx = new CommandContextImpl(BindVariableType.QuestionWithParam);
+            ctx.AddArg("Name", "Test", typeof(string));            
 
-            var builder = new Jiifureit.Dapper.OutsideSql.SqlBuilder.SqlBuilder(rootNode, ctx.Sql);
+            rootNode.Accept(ctx);
 
             Assert.IsNotNull(rootNode);
         }

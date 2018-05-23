@@ -17,6 +17,7 @@
 #endregion
 
 using System;
+using Seasar.Framework.Util;
 
 namespace Seasar.Dao
 {
@@ -26,9 +27,11 @@ namespace Seasar.Dao
         Type GetArgType(string name);
         void AddArg(string name, object arg, Type argType);
         string Sql { get; }
+        string SqlWithValue { get; }
         object[] BindVariables { get; }
         Type[] BindVariableTypes { get; }
         string[] BindVariableNames { get; }
+        BindVariableType BindVariableType { get; set; }
         ICommandContext AddSql(string sql);
         ICommandContext AddSql(string sql, object bindVariable, Type bindVariableType, string bindVariableName);
         ICommandContext AddSql(object bindVariable, Type bindVariableType, string bindVariableName);

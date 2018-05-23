@@ -36,7 +36,7 @@ namespace Seasar.Dao.Node
         private ICommandContext _GetCommandContext(ICommandContext ctx)
         {
             return (ICommandContext)Activator.CreateInstance(
-                ctx.GetType(), new object[] { ctx });
+                ctx.GetType(), new object[] { ctx, ctx.BindVariableType });
         }
     }
 }

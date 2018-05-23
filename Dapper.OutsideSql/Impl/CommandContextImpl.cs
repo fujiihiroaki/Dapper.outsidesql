@@ -7,6 +7,7 @@ using System;
 using System.Collections;
 using System.Text;
 using NLog;
+using Seasar.Framework.Util;
 
 namespace Seasar.Dao.Context
 {
@@ -19,18 +20,23 @@ namespace Seasar.Dao.Context
         private readonly Hashtable _argNames = new Hashtable(StringComparer.OrdinalIgnoreCase);
 
         private readonly StringBuilder _sqlBuf = new StringBuilder(100);
+        private readonly StringBuilder _sqlBufWithValue = new StringBuilder(100);
         private readonly IList _bindVariables = new ArrayList();
         private readonly IList _bindVariableTypes = new ArrayList();
         private readonly IList _bindVariableNames = new ArrayList();
         private readonly ICommandContext _parent;
 
-        public CommandContextImpl()
+        public BindVariableType BindVariableType { get; set; }
+
+        public CommandContextImpl(BindVariableType type)
         {
+            BindVariableType = type;
         }
 
-        public CommandContextImpl(ICommandContext parent)
+        public CommandContextImpl(ICommandContext parent, BindVariableType type)
         {
             _parent = parent;
+            BindVariableType = type;
             IsEnabled = false;
         }
 
@@ -106,6 +112,8 @@ namespace Seasar.Dao.Context
 
         public string Sql => _sqlBuf.ToString();
 
+        public string SqlWithValue => _sqlBufWithValue.ToString();
+
         public object[] BindVariables
         {
             get
@@ -139,6 +147,8 @@ namespace Seasar.Dao.Context
         public ICommandContext AddSql(string sql)
         {
             _sqlBuf.Append(sql);
+            _sqlBufWithValue.Append(sql);
+
             return this;
         }
 
@@ -146,7 +156,16 @@ namespace Seasar.Dao.Context
             Type bindVariableType, string bindVariableName)
         {
 
-            _sqlBuf.Append(sql);
+            var after = sql;
+            if (BindVariableType == BindVariableType.AtmarkWithParam)
+                after = sql.Replace("?", ":" + bindVariableName);
+            if (BindVariableType == BindVariableType.ColonWithParam)
+                after = sql.Replace("?", ":" + bindVariableName);
+            if (BindVariableType == BindVariableType.QuestionWithParam)
+                after = sql + bindVariableName;
+
+            _sqlBuf.Append(after);
+            _sqlBufWithValue.Append(sql.Replace("?", Convert.ToString(bindVariable)));
             _bindVariables.Add(bindVariable);
             _bindVariableTypes.Add(bindVariableType);
             _bindVariableNames.Add(bindVariableName);
