@@ -1,4 +1,5 @@
 #region Copyright
+
 /*
  * Copyright 2005-2015 the Seasar Foundation and the Others.
  *
@@ -14,17 +15,23 @@
  * either express or implied. See the License for the specific language
  * governing permissions and limitations under the License.
  */
+
 #endregion
+
+#region using
 
 using System;
 using System.Runtime.Serialization;
-using Seasar.Framework.Message;
+using Jiifureit.Dapper.OutsideSql.Utility;
 
-namespace Seasar.Framework.Exceptions
+#endregion
+
+namespace Jiifureit.Dapper.OutsideSql.Exception
 {
+    /// <inheritdoc />
     /// <summary>
-    /// Seasarの実行時例外のベースとなるクラスです。
-    /// メッセージコードによって例外を詳細に特定できます。
+    ///     Seasarの実行時例外のベースとなるクラスです。
+    ///     メッセージコードによって例外を詳細に特定できます。
     /// </summary>
     [Serializable]
     public class SRuntimeException : ApplicationException
@@ -41,7 +48,7 @@ namespace Seasar.Framework.Exceptions
         {
         }
 
-        public SRuntimeException(string messageCode, object[] args, Exception cause)
+        public SRuntimeException(string messageCode, object[] args, System.Exception cause)
             : base(messageCode, cause)
         {
             MessageCode = messageCode;
@@ -59,6 +66,14 @@ namespace Seasar.Framework.Exceptions
             SimpleMessage = info.GetString("_simpleMessage");
         }
 
+        public string MessageCode { get; }
+
+        public object[] Args { get; }
+
+        public override string Message => _message;
+
+        public string SimpleMessage { get; }
+
         public override void GetObjectData(SerializationInfo info, StreamingContext context)
         {
             info.AddValue("_messageCode", MessageCode, typeof(string));
@@ -67,13 +82,5 @@ namespace Seasar.Framework.Exceptions
             info.AddValue("_simpleMessage", SimpleMessage, typeof(string));
             base.GetObjectData(info, context);
         }
-
-        public string MessageCode { get; }
-
-        public object[] Args { get; }
-
-        public override string Message => _message;
-
-        public string SimpleMessage { get; }
     }
 }

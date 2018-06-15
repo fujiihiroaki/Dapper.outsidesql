@@ -1,2 +1,2 @@
 ﻿DELETE FROM DEPT
- WHERE deptno = /*no*/99
+ WHERE DEPTNO = /*no*/99

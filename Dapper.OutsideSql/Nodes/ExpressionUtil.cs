@@ -1,4 +1,5 @@
 #region Copyright
+
 /*
  * Copyright 2005-2015 the Seasar Foundation and the Others.
  *
@@ -14,23 +15,28 @@
  * either express or implied. See the License for the specific language
  * governing permissions and limitations under the License.
  */
+
 #endregion
+
+#region using
 
 using System;
 using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace Seasar.Dao.Node
+#endregion
+
+namespace Jiifureit.Dapper.OutsideSql.Nodes
 {
     public class ExpressionUtil
     {
+        private readonly Regex _reLit;
+        private readonly Regex _reOps;
+        private readonly Regex _reSym;
         private IToken _current;
         private int _start;
         private string _text;
-        private readonly Regex _reOps;
-        private readonly Regex _reLit;
-        private readonly Regex _reSym;
 
         public ExpressionUtil()
         {
@@ -49,15 +55,13 @@ namespace Seasar.Dao.Node
                 var token = NextToken();
                 sb.Append(token.Value + " ");
             }
+
             return sb.ToString().TrimEnd(' ');
         }
 
         protected bool Eof()
         {
-            if (_current is Eof)
-            {
-                return true;
-            }
+            if (_current is Eof) return true;
             return false;
         }
 
@@ -79,15 +83,12 @@ namespace Seasar.Dao.Node
                 {
                     match = _reSym.Match(_text);
                     if (match.Length != 0)
-                    {
                         _SetSymbolToken(match);
-                    }
                     else
-                    {
                         _current = new Eof();
-                    }
                 }
             }
+
             return _current;
         }
 
@@ -129,7 +130,7 @@ namespace Seasar.Dao.Node
 
     public interface IToken
     {
-        object Value { get; set;}
+        object Value { get; set; }
     }
 
     public class Eof : IToken
@@ -143,8 +144,8 @@ namespace Seasar.Dao.Node
 
     public class Symbol : IToken
     {
+        private readonly string[] _escapes = {"null", "true", "false"};
         private string _value;
-        private readonly string[] _escapes = { "null", "true", "false" };
 
         public object Value
         {
@@ -158,10 +159,8 @@ namespace Seasar.Dao.Node
                 return _value;
 
             foreach (string escape in _escapes)
-            {
                 if (_value.ToLower() == escape)
                     return _value.ToLower();
-            }
 
             return "self.GetArg('" + _value + "')";
         }
@@ -179,8 +178,9 @@ namespace Seasar.Dao.Node
         public object Value
         {
             get => _value;
-            set => _value = (float) Double.Parse(value.ToString());
+            set => _value = (float) double.Parse(value.ToString());
         }
+
         public override string ToString()
         {
             return _value.ToString(CultureInfo.InvariantCulture);
@@ -196,6 +196,7 @@ namespace Seasar.Dao.Node
             get => _value;
             set => _value = (string) value;
         }
+
         public override string ToString()
         {
             return _value;

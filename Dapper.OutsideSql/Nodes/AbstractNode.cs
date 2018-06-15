@@ -1,4 +1,5 @@
 #region Copyright
+
 /*
  * Copyright 2005-2015 the Seasar Foundation and the Others.
  *
@@ -14,17 +15,33 @@
  * either express or implied. See the License for the specific language
  * governing permissions and limitations under the License.
  */
+
 #endregion
+
+#region using
 
 using System;
 using System.Collections;
 using Jiifureit.Dapper.OutsideSql.Utility;
 
-namespace Seasar.Dao.Node
+#endregion
+
+namespace Jiifureit.Dapper.OutsideSql.Nodes
 {
     public abstract class AbstractNode : INode
     {
         private readonly IList _children = new ArrayList();
+
+        protected object InvokeExpression(string expression, ICommandContext ctx)
+        {
+            var ht = new Hashtable
+            {
+                ["self"] = ctx,
+                ["out"] = Console.Out,
+                ["err"] = Console.Error
+            };
+            return CSharpScriptUtil.Evaluate(expression, ht, null);
+        }
 
         #region INode ÉÅÉìÉo
 
@@ -43,23 +60,13 @@ namespace Seasar.Dao.Node
         public bool ContainsChild(Type childType)
         {
             foreach (INode child in _children)
-            {
-                if (child.GetType() == childType) return true;
-            }
+                if (child.GetType() == childType)
+                    return true;
             return false;
         }
 
         public abstract void Accept(ICommandContext ctx);
 
         #endregion
-
-        protected object InvokeExpression(string expression, ICommandContext ctx)
-        {
-            Hashtable ht = new Hashtable();
-            ht["self"] = ctx;
-            ht["out"] = Console.Out;
-            ht["err"] = Console.Error;
-            return CSharpScriptUtil.Evaluate(expression, ht, null);
-        }
     }
 }

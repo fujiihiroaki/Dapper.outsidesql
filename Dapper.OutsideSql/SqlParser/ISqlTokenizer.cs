@@ -1,4 +1,5 @@
 #region Copyright
+
 /*
  * Copyright 2005-2015 the Seasar Foundation and the Others.
  *
@@ -14,20 +15,19 @@
  * either express or implied. See the License for the specific language
  * governing permissions and limitations under the License.
  */
+
 #endregion
 
-namespace Seasar.Dao
+namespace Jiifureit.Dapper.OutsideSql.SqlParser
 {
     public interface ISqlTokenizer
     {
         string Token { get; }
         string Before { get; }
         string After { get; }
-        int Position { get; }
         TokenType TokenType { get; }
-        TokenType NextTokenType { get; }
         TokenType Next();
         string SkipToken();
-        string SkipWhitespace();
+        string _SkipWhitespace();
     }
 }

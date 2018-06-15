@@ -17,9 +17,9 @@
 #endregion
 
 using System;
-using Seasar.Framework.Util;
+using Jiifureit.Dapper.OutsideSql.Utility;
 
-namespace Seasar.Dao
+namespace Jiifureit.Dapper.OutsideSql
 {
     public interface ICommandContext
     {

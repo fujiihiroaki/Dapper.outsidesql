@@ -1,4 +1,5 @@
 #region Copyright
+
 /*
  * Copyright 2005-2015 the Seasar Foundation and the Others.
  *
@@ -14,11 +15,16 @@
  * either express or implied. See the License for the specific language
  * governing permissions and limitations under the License.
  */
+
 #endregion
+
+#region using
 
 using NLog;
 
-namespace Seasar.Dao.Node
+#endregion
+
+namespace Jiifureit.Dapper.OutsideSql.Nodes
 {
     public class EmbeddedValueNode : AbstractNode
     {
@@ -33,15 +39,11 @@ namespace Seasar.Dao.Node
 
         public override void Accept(ICommandContext ctx)
         {
-            object value = ctx.GetArg(Expression);
+            var value = ctx.GetArg(Expression);
             if (value != null)
-            {
                 ctx.AddSql(value.ToString());
-            }
             else
-            {
-                logger.Log(LogLevel.Error, new object[] { Expression });
-            }
+                logger.Log(LogLevel.Error, new object[] {Expression});
         }
     }
 }

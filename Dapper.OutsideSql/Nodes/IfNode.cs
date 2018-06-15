@@ -1,4 +1,5 @@
 #region Copyright
+
 /*
  * Copyright 2005-2015 the Seasar Foundation and the Others.
  *
@@ -14,31 +15,34 @@
  * either express or implied. See the License for the specific language
  * governing permissions and limitations under the License.
  */
+
 #endregion
+
+#region using
 
 using System;
 
-namespace Seasar.Dao.Node
+#endregion
+
+namespace Jiifureit.Dapper.OutsideSql.Nodes
 {
     public class IfNode : ContainerNode
     {
-        private readonly string _expression;
-
         public IfNode(string expression)
         {
             var expressionUtil = new ExpressionUtil();
-            _expression = expressionUtil.ParseExpression(expression);
-            if (_expression == null)
-                throw new ApplicationException("IllegalBoolExpression=[" + _expression + "]");
+            Expression = expressionUtil.ParseExpression(expression);
+            if (Expression == null)
+                throw new ApplicationException("IllegalBoolExpression=[" + Expression + "]");
         }
 
-        public string Expression => _expression;
+        public string Expression { get; }
 
         public ElseNode ElseNode { get; set; }
 
         public override void Accept(ICommandContext ctx)
         {
-            object result = InvokeExpression(_expression, ctx);
+            var result = InvokeExpression(Expression, ctx);
             if (result != null)
             {
                 if (Convert.ToBoolean(result))
@@ -54,7 +58,7 @@ namespace Seasar.Dao.Node
             }
             else
             {
-                throw new ApplicationException("IllegalBoolExpression=[" + _expression + "]");
+                throw new ApplicationException("IllegalBoolExpression=[" + Expression + "]");
             }
         }
     }

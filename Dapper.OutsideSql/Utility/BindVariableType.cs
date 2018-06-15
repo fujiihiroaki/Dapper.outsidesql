@@ -16,7 +16,7 @@
  */
 #endregion
 
-namespace Seasar.Framework.Util
+namespace Jiifureit.Dapper.OutsideSql.Utility
 {
     /// <summary>
     /// ƒoƒCƒ“ƒh•Ï”‚Ìí—Ş

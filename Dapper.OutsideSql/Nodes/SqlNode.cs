@@ -1,4 +1,5 @@
 #region Copyright
+
 /*
  * Copyright 2005-2015 the Seasar Foundation and the Others.
  *
@@ -14,9 +15,14 @@
  * either express or implied. See the License for the specific language
  * governing permissions and limitations under the License.
  */
+
 #endregion
 
-namespace Seasar.Dao.Node
+#region using
+
+#endregion
+
+namespace Jiifureit.Dapper.OutsideSql.Nodes
 {
     public class SqlNode : AbstractNode
     {

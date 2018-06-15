@@ -16,14 +16,14 @@
  */
 #endregion
 
-namespace Seasar.Dao
+namespace Jiifureit.Dapper.OutsideSql.SqlParser
 {
     public enum TokenType
     {
-        SQL,
-        COMMENT,
-        ELSE,
-        BIND_VARIABLE,
-        EOF
+        Sql,
+        Comment,
+        Else,
+        BindVariable,
+        Eof
     }
 }

@@ -1,14 +1,28 @@
-﻿// /* 
-// *  Copyright (c) 2018-2018  Hiroaki Fujii All rights reserved. Licensed under the MIT license. 
-// *  See LICENSE in the source repository root for complete license information. 
-// */
+﻿#region copyright
+
+// /*
+//  * Copyright 2018-2018 Hiroaki Fujii  All rights reserved. 
+//  *
+//  * Licensed under the Apache License, Version 2.0 (the "License");
+//  * you may not use this file except in compliance with the License.
+//  * You may obtain a copy of the License at
+//  *
+//  *     http://www.apache.org/licenses/LICENSE-2.0
+//  *
+//  * Unless required by applicable law or agreed to in writing, software
+//  * distributed under the License is distributed on an "AS IS" BASIS,
+//  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+//  * either express or implied. See the License for the specific language
+//  * governing permissions and limitations under the License.
+//  */
+
+#endregion
 
 #region using
 
 using System.Collections;
-using Seasar.Dao;
-using Seasar.Dao.Node;
-using Seasar.Dao.Parser;
+using Jiifureit.Dapper.OutsideSql.Exception;
+using Jiifureit.Dapper.OutsideSql.Nodes;
 using static System.String;
 
 #endregion
@@ -30,7 +44,7 @@ namespace Jiifureit.Dapper.OutsideSql.SqlParser
         public INode Parse()
         {
             Push(new ContainerNode());
-            while (TokenType.EOF != _tokenizer.Next()) ParseToken();
+            while (TokenType.Eof != _tokenizer.Next()) ParseToken();
             return Pop();
         }
 
@@ -38,16 +52,16 @@ namespace Jiifureit.Dapper.OutsideSql.SqlParser
         {
             switch (_tokenizer.TokenType)
             {
-                case TokenType.SQL:
+                case TokenType.Sql:
                     ParseSql();
                     break;
-                case TokenType.COMMENT:
+                case TokenType.Comment:
                     ParseComment();
                     break;
-                case TokenType.ELSE:
+                case TokenType.Else:
                     ParseElse();
                     break;
-                case TokenType.BIND_VARIABLE:
+                case TokenType.BindVariable:
                     ParseBindVariable();
                     break;
             }
@@ -62,9 +76,9 @@ namespace Jiifureit.Dapper.OutsideSql.SqlParser
             if ((node is IfNode || node is ElseNode) && node.ChildSize == 0)
             {
                 ISqlTokenizer st = new SqlTokenizerImpl(sql);
-                st.SkipWhitespace();
+                st._SkipWhitespace();
                 var token = st.SkipToken();
-                st.SkipWhitespace();
+                st._SkipWhitespace();
                 if ("AND".Equals(token.ToUpper()) || "OR".Equals(token.ToUpper()))
                     node.AddChild(new PrefixSqlNode(st.Before, st.After));
                 else
@@ -119,9 +133,9 @@ namespace Jiifureit.Dapper.OutsideSql.SqlParser
 
         protected void ParseEnd()
         {
-            while (TokenType.EOF != _tokenizer.Next())
+            while (TokenType.Eof != _tokenizer.Next())
             {
-                if (_tokenizer.TokenType == TokenType.COMMENT
+                if (_tokenizer.TokenType == TokenType.Comment
                     && _IsEndComment(_tokenizer.Token))
                 {
                     Pop();
@@ -142,7 +156,7 @@ namespace Jiifureit.Dapper.OutsideSql.SqlParser
             var elseNode = new ElseNode();
             ifNode.ElseNode = elseNode;
             Push(elseNode);
-            _tokenizer.SkipWhitespace();
+            _tokenizer._SkipWhitespace();
         }
 
         protected void ParseCommentBindVariable()

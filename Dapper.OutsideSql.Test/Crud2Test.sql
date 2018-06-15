@@ -6,8 +6,8 @@
 			,ACTIVE
 	  ) values (
 			/*deptno*/99
-			/*nm*/,'SALES2'
-			/*location*/,'LOS ANGELS'
+			,/*nm*/'SALES2'
+			,/*location*/'LOS ANGELS'
 			,1
-			/*active*/,1
+			,/*active*/1
 			)

@@ -1,12 +1,31 @@
-// /* 
-// *  Copyright (c) 2018-2018  Hiroaki Fujii All rights reserved. Licensed under the MIT license. 
-// *  See LICENSE in the source repository root for complete license information. 
-// */
+#region copyright
+
+// /*
+//  * Copyright 2018-2018 Hiroaki Fujii  All rights reserved. 
+//  *
+//  * Licensed under the Apache License, Version 2.0 (the "License");
+//  * you may not use this file except in compliance with the License.
+//  * You may obtain a copy of the License at
+//  *
+//  *     http://www.apache.org/licenses/LICENSE-2.0
+//  *
+//  * Unless required by applicable law or agreed to in writing, software
+//  * distributed under the License is distributed on an "AS IS" BASIS,
+//  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+//  * either express or implied. See the License for the specific language
+//  * governing permissions and limitations under the License.
+//  */
+
+#endregion
+
+#region using
 
 using System;
 using System.Collections;
 
-namespace Seasar.Dao.Node
+#endregion
+
+namespace Jiifureit.Dapper.OutsideSql.Nodes
 {
     public class ParenBindVariableNode : AbstractNode
     {
@@ -32,10 +51,6 @@ namespace Seasar.Dao.Node
                     _BindArray(ctx, array);
                 }
             }
-            else
-            {
-                return;
-            }
         }
 
         private void _BindArray(ICommandContext ctx, object arrayArg)
@@ -51,12 +66,10 @@ namespace Seasar.Dao.Node
                     var o = array[i];
                     if (o != null) type = o.GetType();
                 }
+
                 ctx.AddSql("(");
                 ctx.AddSql(array[0], type, _bindName + 1);
-                for (var i = 1; i < length; ++i)
-                {
-                    ctx.AppendSql(array[i], type, _bindName + (i + 1));
-                }
+                for (var i = 1; i < length; ++i) ctx.AppendSql(array[i], type, _bindName + (i + 1));
             }
 
             ctx.AddSql(")");

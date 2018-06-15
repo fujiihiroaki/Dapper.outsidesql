@@ -1,4 +1,5 @@
 #region Copyright
+
 /*
  * Copyright 2005-2015 the Seasar Foundation and the Others.
  *
@@ -14,29 +15,32 @@
  * either express or implied. See the License for the specific language
  * governing permissions and limitations under the License.
  */
+
 #endregion
+
+#region using
 
 using System;
 
-namespace Seasar.Dao.Node
+#endregion
+
+namespace Jiifureit.Dapper.OutsideSql.Nodes
 {
     public class BeginNode : ContainerNode
     {
         public override void Accept(ICommandContext ctx)
         {
-            ICommandContext childCtx = _GetCommandContext(ctx);
+            var childCtx = _GetCommandContext(ctx);
             base.Accept(childCtx);
             if (childCtx.IsEnabled)
-            {
                 ctx.AddSql(childCtx.Sql, childCtx.BindVariables,
                     childCtx.BindVariableTypes, childCtx.BindVariableNames);
-            }
         }
 
-        private ICommandContext _GetCommandContext(ICommandContext ctx)
+        private static ICommandContext _GetCommandContext(ICommandContext ctx)
         {
-            return (ICommandContext)Activator.CreateInstance(
-                ctx.GetType(), new object[] { ctx, ctx.BindVariableType });
+            return (ICommandContext) Activator.CreateInstance(
+                ctx.GetType(), new object[] {ctx, ctx.BindVariableType});
         }
     }
 }

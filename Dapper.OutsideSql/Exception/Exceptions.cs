@@ -1,4 +1,5 @@
 #region Copyright
+
 /*
  * Copyright 2005-2015 the Seasar Foundation and the Others.
  *
@@ -14,39 +15,19 @@
  * either express or implied. See the License for the specific language
  * governing permissions and limitations under the License.
  */
+
 #endregion
+
+#region using
 
 using System;
 using System.Reflection;
 using System.Runtime.Serialization;
-using Seasar.Framework.Exceptions;
 
-namespace Seasar.Dao
+#endregion
+
+namespace Jiifureit.Dapper.OutsideSql.Exception
 {
-    [Serializable]
-    public class DaoNotFoundRuntimeException : SRuntimeException
-    {
-        public DaoNotFoundRuntimeException(Type targetType)
-            : base("EDAO0008", new object[] { targetType.Name })
-        {
-            TargetType = targetType;
-        }
-
-        public DaoNotFoundRuntimeException(SerializationInfo info, StreamingContext context)
-            : base(info, context)
-        {
-            TargetType = info.GetValue("_targetType", typeof(Type)) as Type;
-        }
-
-        public override void GetObjectData(SerializationInfo info, StreamingContext context)
-        {
-            info.AddValue("_targetType", TargetType, typeof(Type));
-            base.GetObjectData(info, context);
-        }
-
-        public Type TargetType { get; }
-    }
-
     [Serializable]
     public class EndCommentNotFoundRuntimeException : SRuntimeException
     {
@@ -69,7 +50,7 @@ namespace Seasar.Dao
     public class IllegalBoolExpressionRuntimeException : SRuntimeException
     {
         public IllegalBoolExpressionRuntimeException(string expression)
-            : base("EDAO0003", new object[] { expression })
+            : base("EDAO0003", new object[] {expression})
         {
             Expression = expression;
         }
@@ -80,44 +61,20 @@ namespace Seasar.Dao
             Expression = info.GetString("_expression");
         }
 
+        public string Expression { get; }
+
         public override void GetObjectData(SerializationInfo info, StreamingContext context)
         {
             info.AddValue("_expression", Expression, typeof(string));
             base.GetObjectData(info, context);
         }
-
-        public string Expression { get; }
-    }
-
-    [Serializable]
-    public class IllegalSignatureRuntimeException : SRuntimeException
-    {
-        public IllegalSignatureRuntimeException(string messageCode, string signature)
-            : base(messageCode, new object[] { signature })
-        {
-            Signature = signature;
-        }
-
-        public IllegalSignatureRuntimeException(SerializationInfo info, StreamingContext context)
-            : base(info, context)
-        {
-            Signature = info.GetString("_signature");
-        }
-
-        public override void GetObjectData(SerializationInfo info, StreamingContext context)
-        {
-            info.AddValue("_signature", Signature, typeof(string));
-            base.GetObjectData(info, context);
-        }
-
-        public string Signature { get; }
     }
 
     [Serializable]
     public class UpdateFailureRuntimeException : SRuntimeException
     {
         public UpdateFailureRuntimeException(object bean, int rows)
-            : base("EDAO0005", new object[] { bean.ToString(), rows.ToString() })
+            : base("EDAO0005", new object[] {bean.ToString(), rows.ToString()})
         {
             Bean = bean;
             Rows = rows;
@@ -130,61 +87,23 @@ namespace Seasar.Dao
             Rows = info.GetInt32("_rows");
         }
 
+        public object Bean { get; }
+
+        public int Rows { get; }
+
         public override void GetObjectData(SerializationInfo info, StreamingContext context)
         {
             info.AddValue("_bean", Bean, typeof(object));
             info.AddValue("_rows", Rows, typeof(int));
             base.GetObjectData(info, context);
         }
-
-        public object Bean { get; }
-
-        public int Rows { get; }
-    }
-
-    [Serializable]
-    public class NotSingleRowUpdatedRuntimeException : UpdateFailureRuntimeException
-    {
-        public NotSingleRowUpdatedRuntimeException(object bean, int rows)
-            : base(bean, rows)
-        {
-        }
-
-        public NotSingleRowUpdatedRuntimeException(SerializationInfo info, StreamingContext context)
-            : base(info, context)
-        {
-        }
-    }
-
-    [Serializable]
-    public class PrimaryKeyNotFoundRuntimeException : SRuntimeException
-    {
-        public PrimaryKeyNotFoundRuntimeException(Type targetType)
-            : base("EDAO0009", new object[] { targetType.Name })
-        {
-            TargetType = targetType;
-        }
-
-        public PrimaryKeyNotFoundRuntimeException(SerializationInfo info, StreamingContext context)
-            : base(info, context)
-        {
-            TargetType = info.GetValue("_targetType", typeof(Type)) as Type;
-        }
-
-        public override void GetObjectData(SerializationInfo info, StreamingContext context)
-        {
-            info.AddValue("_targetType", TargetType, typeof(Type));
-            base.GetObjectData(info, context);
-        }
-
-        public Type TargetType { get; }
     }
 
     [Serializable]
     public class TokenNotClosedRuntimeException : SRuntimeException
     {
         public TokenNotClosedRuntimeException(string token, string sql)
-            : base("EDAO0002", new object[] { token, sql })
+            : base("EDAO0002", new object[] {token, sql})
         {
             Token = token;
             Sql = sql;
@@ -197,23 +116,23 @@ namespace Seasar.Dao
             Sql = info.GetString("_sql");
         }
 
+        public string Token { get; }
+
+        public string Sql { get; }
+
         public override void GetObjectData(SerializationInfo info, StreamingContext context)
         {
             info.AddValue("_token", Token, typeof(string));
             info.AddValue("_sql", Sql, typeof(string));
             base.GetObjectData(info, context);
         }
-
-        public string Token { get; }
-
-        public string Sql { get; }
     }
 
     [Serializable]
     public class WrongPropertyTypeOfTimestampException : SRuntimeException
     {
         public WrongPropertyTypeOfTimestampException(string propertyName, string propertyType)
-            : base("EDAO0010", new object[] { propertyName, propertyType })
+            : base("EDAO0010", new object[] {propertyName, propertyType})
         {
             PropertyName = propertyName;
             PropertyType = propertyType;
@@ -226,24 +145,24 @@ namespace Seasar.Dao
             PropertyType = info.GetString("_propertyType");
         }
 
+        public string PropertyName { get; }
+
+        public string PropertyType { get; }
+
         public override void GetObjectData(SerializationInfo info, StreamingContext context)
         {
             info.AddValue("_propertyName", PropertyName, typeof(string));
             info.AddValue("_propertyType", PropertyType, typeof(string));
             base.GetObjectData(info, context);
         }
-
-        public string PropertyName { get; }
-
-        public string PropertyType { get; }
     }
 
     [Serializable]
     public class NotFoundModifiedPropertiesRuntimeException : SRuntimeException
     {
         public NotFoundModifiedPropertiesRuntimeException(
-                string beanClassName, string propertyName)
-            : base("EDAXXXXX", new object[] { beanClassName, propertyName })
+            string beanClassName, string propertyName)
+            : base("EDAXXXXX", new object[] {beanClassName, propertyName})
         {
             BeanClassName = beanClassName;
         }
@@ -264,7 +183,7 @@ namespace Seasar.Dao
     public class SqlFileNotFoundRuntimeException : SRuntimeException
     {
         public SqlFileNotFoundRuntimeException(MemberInfo daoType, MemberInfo daoMethod, string fileName)
-            : base("EDAO0025", new object[] { daoType.Name, daoMethod.Name, fileName })
+            : base("EDAO0025", new object[] {daoType.Name, daoMethod.Name, fileName})
         {
         }
     }
@@ -273,7 +192,7 @@ namespace Seasar.Dao
     public class IllegalReturnElementTypeException : SRuntimeException
     {
         public IllegalReturnElementTypeException(MemberInfo elementType, MemberInfo resultType)
-            : base("EDAO0026", new object[] { elementType.Name, resultType.Name })
+            : base("EDAO0026", new object[] {elementType.Name, resultType.Name})
         {
         }
     }
