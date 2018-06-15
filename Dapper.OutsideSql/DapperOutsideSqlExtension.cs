@@ -6,17 +6,16 @@
 #region using
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data;
 using System.IO;
 using Dapper;
 using Hnx8.ReadJEnc;
+using Jiifureit.Dapper.OutsideSql.Impl;
 using Jiifureit.Dapper.OutsideSql.SqlParser;
 using Jiifureit.Dapper.OutsideSql.Utility;
 using NLog;
 using Seasar.Dao;
-using Seasar.Dao.Context;
 using Seasar.Framework.Util;
 
 #endregion
@@ -29,9 +28,6 @@ namespace Jiifureit.Dapper.OutsideSql
     public static class DapperOutsideSqlExtension
     {
         private static readonly Logger logger = LogManager.GetCurrentClassLogger();
-
-        private static readonly ConcurrentDictionary<string, string> sqlDictionary =
-            new ConcurrentDictionary<string, string>();
 
         /// <summary>
         ///     Execute parameterized SQL.
@@ -120,7 +116,7 @@ namespace Jiifureit.Dapper.OutsideSql
         public static IEnumerable<dynamic> QueryOutsideSql(this IDbConnection cnn, string filepath, object param = null, IDbTransaction transaction = null, 
             bool buffered = true, int? commandTimeout = null, CommandType? commandType = null)
         {
-            return QueryOutsideSql<dynamic>(cnn, filepath, param as object, transaction, buffered, commandTimeout, commandType);
+            return QueryOutsideSql<dynamic>(cnn, filepath, param, transaction, buffered, commandTimeout, commandType);
         }
 
         /// <summary>
@@ -136,7 +132,7 @@ namespace Jiifureit.Dapper.OutsideSql
         public static dynamic QueryFirstOutsideSql(this IDbConnection cnn, string filepath, object param = null, IDbTransaction transaction = null, 
             int? commandTimeout = null, CommandType? commandType = null)
         {
-            return QueryFirstOutsideSql<dynamic>(cnn, filepath, param as object, transaction, commandTimeout, commandType);
+            return QueryFirstOutsideSql<dynamic>(cnn, filepath, param, transaction, commandTimeout, commandType);
         }
 
         /// <summary>
@@ -152,7 +148,7 @@ namespace Jiifureit.Dapper.OutsideSql
         public static dynamic QueryFirstOrDefaultOutsideSql(this IDbConnection cnn, string filepath, object param = null, IDbTransaction transaction = null,
             int? commandTimeout = null, CommandType? commandType = null)
         {
-            return QueryFirstOrDefaultOutsideSql<dynamic>(cnn, filepath, param as object, transaction, commandTimeout, commandType);
+            return QueryFirstOrDefaultOutsideSql<dynamic>(cnn, filepath, param, transaction, commandTimeout, commandType);
         }
 
         /// <summary>
@@ -168,7 +164,7 @@ namespace Jiifureit.Dapper.OutsideSql
         public static dynamic QuerySingleOutsideSql(this IDbConnection cnn, string filepath, object param = null, IDbTransaction transaction = null, 
             int? commandTimeout = null, CommandType? commandType = null)
         {
-            return QuerySingleOutsideSql<dynamic>(cnn, filepath, param as object, transaction, commandTimeout, commandType);
+            return QuerySingleOutsideSql<dynamic>(cnn, filepath, param, transaction, commandTimeout, commandType);
         }
 
         /// <summary>
@@ -184,7 +180,7 @@ namespace Jiifureit.Dapper.OutsideSql
         public static dynamic QuerySingleOrDefaultOutsideSql(this IDbConnection cnn, string filepath, object param = null, IDbTransaction transaction = null, 
             int? commandTimeout = null, CommandType? commandType = null)
         {
-            return QuerySingleOrDefaultOutsideSql<dynamic>(cnn, filepath, param as object, transaction, commandTimeout, commandType);
+            return QuerySingleOrDefaultOutsideSql<dynamic>(cnn, filepath, param, transaction, commandTimeout, commandType);
         }
 
         /// <summary>
@@ -452,26 +448,20 @@ namespace Jiifureit.Dapper.OutsideSql
             BindVariableType type = BindVariableType.Question)
         {
             string sql;
-            if (sqlDictionary.ContainsKey(filepath))
+
+            // Read file.
+            var fileInfo = new FileInfo(filepath);
+            using (var fileReader = new FileReader(fileInfo))
             {
-                sql = sqlDictionary[filepath];
-            }
-            else
-            {
-                var fileInfo = new FileInfo(filepath);
-                using (var fileReader = new FileReader(fileInfo))
+                var charcode = fileReader.Read(fileInfo);
+
+                using (TextReader reader = new StreamReader(filepath, charcode.GetEncoding()))
                 {
-                    var charcode = fileReader.Read(fileInfo);
-
-                    using (TextReader reader = new StreamReader(filepath, charcode.GetEncoding()))
-                    {
-                        sql = reader.ReadToEnd();
-                    }
+                    sql = reader.ReadToEnd();
                 }
-
-                sqlDictionary.TryAdd(filepath, sql);
             }
 
+            // parse reading file.
             var parser = new Parser(sql);
             var rootNode = parser.Parse();
 
@@ -480,15 +470,26 @@ namespace Jiifureit.Dapper.OutsideSql
                 BindVariableType = type
             };
 
-            var p = new DynamicParameters(param);
-            p.ParameterNames.AsList().ForEach(s =>
+            // parameter
+            if (!(param is IEnumerable<KeyValuePair<string, object>> dictionary))
             {
-                object v = p.Get<dynamic>(s);
-                ctx.AddArg(s, v, v.GetType());
-            });
+                var proprties = param.GetType().GetProperties();
+                proprties.AsList().ForEach(p =>
+                {
+                    ctx.AddArg(p.Name, p.GetValue(param), p.GetValue(param).GetType());
+                });
+            }
+            else
+            {
+                foreach (var keyValue in dictionary)
+                {
+                    ctx.AddArg(keyValue.Key, keyValue.Value, keyValue.Value.GetType());
+                }
+            }
 
             rootNode.Accept(ctx);
 
+            // log sql to logger.
             logger.Debug(ctx.SqlWithValue);
 
             return ctx.Sql;

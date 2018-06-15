@@ -3,30 +3,33 @@
 // *  See LICENSE in the source repository root for complete license information. 
 // */
 
+#region using
+
 using System;
 using System.Collections;
 using System.Text;
 using NLog;
+using Seasar.Dao;
 using Seasar.Framework.Util;
 
-namespace Seasar.Dao.Context
+#endregion
+
+namespace Jiifureit.Dapper.OutsideSql.Impl
 {
     public class CommandContextImpl : ICommandContext
     {
         private static readonly Logger logger = LogManager.GetCurrentClassLogger();
+        private readonly Hashtable _argNames = new Hashtable(StringComparer.OrdinalIgnoreCase);
 
         private readonly Hashtable _args = new Hashtable(StringComparer.OrdinalIgnoreCase);
         private readonly Hashtable _argTypes = new Hashtable(StringComparer.OrdinalIgnoreCase);
-        private readonly Hashtable _argNames = new Hashtable(StringComparer.OrdinalIgnoreCase);
+        private readonly IList _bindVariableNames = new ArrayList();
+        private readonly IList _bindVariables = new ArrayList();
+        private readonly IList _bindVariableTypes = new ArrayList();
+        private readonly ICommandContext _parent;
 
         private readonly StringBuilder _sqlBuf = new StringBuilder(100);
         private readonly StringBuilder _sqlBufWithValue = new StringBuilder(100);
-        private readonly IList _bindVariables = new ArrayList();
-        private readonly IList _bindVariableTypes = new ArrayList();
-        private readonly IList _bindVariableNames = new ArrayList();
-        private readonly ICommandContext _parent;
-
-        public BindVariableType BindVariableType { get; set; }
 
         public CommandContextImpl(BindVariableType type)
         {
@@ -39,6 +42,8 @@ namespace Seasar.Dao.Context
             BindVariableType = type;
             IsEnabled = false;
         }
+
+        public BindVariableType BindVariableType { get; set; }
 
         public object GetArg(string name)
         {
@@ -53,17 +58,14 @@ namespace Seasar.Dao.Context
             else
             {
                 var names = name.Split('.');
-                var value = _args[names[0]]; ;
+                var value = _args[names[0]];
                 var type = GetArgType(names[0]);
 
                 for (var pos = 1; pos < names.Length; pos++)
                 {
                     if (value == null || type == null) break;
                     var pi = type.GetProperty(names[pos]);
-                    if (pi == null)
-                    {
-                        return null;
-                    }
+                    if (pi == null) return null;
                     value = pi.GetValue(value, null);
                     type = pi.PropertyType;
                 }
@@ -76,7 +78,7 @@ namespace Seasar.Dao.Context
         {
             if (_argTypes.ContainsKey(name))
             {
-                return (Type)_argTypes[name];
+                return (Type) _argTypes[name];
             }
             else if (_parent != null)
             {
@@ -84,29 +86,20 @@ namespace Seasar.Dao.Context
             }
             else
             {
-                logger.Error("WDAO0001", new object[] { name });
+                logger.Warn("WDAO0001", new object[] {name});
                 return null;
             }
         }
 
         public void AddArg(string name, object arg, Type argType)
         {
-            if (_args.ContainsKey(name))
-            {
-                _args.Remove(name);
-            }
+            if (_args.ContainsKey(name)) _args.Remove(name);
             _args.Add(name, arg);
 
-            if (_argTypes.ContainsKey(name))
-            {
-                _argTypes.Remove(name);
-            }
+            if (_argTypes.ContainsKey(name)) _argTypes.Remove(name);
             _argTypes.Add(name, argType);
 
-            if (_argNames.ContainsKey(name))
-            {
-                _argNames.Remove(name);
-            }
+            if (_argNames.ContainsKey(name)) _argNames.Remove(name);
             _argNames.Add(name, name);
         }
 
@@ -155,17 +148,25 @@ namespace Seasar.Dao.Context
         public ICommandContext AddSql(string sql, object bindVariable,
             Type bindVariableType, string bindVariableName)
         {
+            string Func(object o)
+            {
+                if (o is decimal || o is byte || o is double || o is float || o is int || o is long || o is short ||
+                    o is sbyte || o is uint || o is ulong || o is ushort)
+                    return Convert.ToString(o);
+                else
+                    return "'" + Convert.ToString(o) + "'";
+            }
 
             var after = sql;
             if (BindVariableType == BindVariableType.AtmarkWithParam)
-                after = sql.Replace("?", ":" + bindVariableName);
+                after = sql.Replace("?", "@" + bindVariableName);
             if (BindVariableType == BindVariableType.ColonWithParam)
                 after = sql.Replace("?", ":" + bindVariableName);
             if (BindVariableType == BindVariableType.QuestionWithParam)
                 after = sql + bindVariableName;
 
             _sqlBuf.Append(after);
-            _sqlBufWithValue.Append(sql.Replace("?", Convert.ToString(bindVariable)));
+            _sqlBufWithValue.Append(sql.Replace("?", Func(bindVariable)));
             _bindVariables.Add(bindVariable);
             _bindVariableTypes.Add(bindVariableType);
             _bindVariableNames.Add(bindVariableName);
@@ -181,14 +182,36 @@ namespace Seasar.Dao.Context
         public ICommandContext AddSql(string sql, object[] bindVariables,
             Type[] bindVariableTypes, string[] bindVariableNames)
         {
-
             _sqlBuf.Append(sql);
+
+            var after = sql;
+            for (var i = 0; i < bindVariableTypes.Length; i++)
+            {
+                var o = bindVariables[i];
+                var pos = after.IndexOf(bindVariableNames[i]);
+                if (pos > 0)
+                {
+                    string quote;
+                    if (o is decimal || o is byte || o is double || o is float || o is int || o is long || o is short ||
+                        o is sbyte || o is uint || o is ulong || o is ushort)
+                        quote = "";
+                    else
+                        quote = "'";
+
+                    after = after.Substring(0, pos - 1) + quote + Convert.ToString(o) + quote +
+                            after.Substring(pos + bindVariableNames[i].Length);
+                }
+            }
+
+            _sqlBufWithValue.Append(after);
+
             for (var i = 0; i < bindVariables.Length; ++i)
             {
                 _bindVariables.Add(bindVariables[i]);
                 _bindVariableTypes.Add(bindVariableTypes[i]);
                 _bindVariableNames.Add(bindVariableNames[i]);
             }
+
             return this;
         }
 

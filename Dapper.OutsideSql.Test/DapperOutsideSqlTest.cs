@@ -1,11 +1,23 @@
-using System;
+#region copyright
+
+// /* 
+// *  Copyright (c) 2018-2018  Hiroaki Fujii All rights reserved. Licensed under the MIT license. 
+// *  See LICENSE in the source repository root for complete license information. 
+// */
+
+#endregion
+
+#region using
+
 using System.IO;
 using Hnx8.ReadJEnc;
+using Jiifureit.Dapper.OutsideSql.Impl;
 using Jiifureit.Dapper.OutsideSql.SqlParser;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Seasar.Dao;
-using Seasar.Dao.Context;
 using Seasar.Framework.Util;
+
+#endregion
 
 namespace Dapper.OutsideSql.Test
 {
@@ -17,7 +29,7 @@ namespace Dapper.OutsideSql.Test
         {
             var filePath = @"C:\projects\Dapper.outsidesql\Dapper.OutsideSql.Test\ParserTest.sql";
 
-            var sql = "";
+            string sql;
             var fileInfo = new FileInfo(filePath);
             using (var fileReader = new FileReader(fileInfo))
             {
@@ -33,11 +45,11 @@ namespace Dapper.OutsideSql.Test
             var rootNode = parser.Parse();
 
             ICommandContext ctx = new CommandContextImpl(BindVariableType.QuestionWithParam);
-            ctx.AddArg("Name", "Test", typeof(string));            
 
             rootNode.Accept(ctx);
 
-            Assert.IsNotNull(rootNode);
+            Assert.IsNotNull(rootNode, "node is not null");
+            Assert.IsTrue(sql.Length > 0, "sql string");
         }
     }
 }
