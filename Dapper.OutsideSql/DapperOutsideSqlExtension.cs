@@ -21,6 +21,7 @@
 #region using
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.IO;
@@ -534,7 +535,8 @@ namespace Jiifureit.Dapper.OutsideSql
                 }
                 else
                 {
-                    foreach (var keyValue in dictionary) ctx.AddArg(keyValue.Key, keyValue.Value, keyValue.Value.GetType());
+                    foreach (var keyValue in dictionary)
+                        ctx.AddArg(keyValue.Key, keyValue.Value, keyValue.Value.GetType());
                 }
             }
 
@@ -552,8 +554,9 @@ namespace Jiifureit.Dapper.OutsideSql
             bool IsGenericEnumerable(Type type)
             {
                 return type.GetInterfaces()
-                    .Any(t => t.IsGenericType && 
-                              (t.GetGenericTypeDefinition() == typeof(ICollection<>) || t.GetGenericTypeDefinition() == typeof(IList<>)));
+                    .Any(t => t.IsGenericType &&
+                              (t.GetGenericTypeDefinition() == typeof(ICollection<>) ||
+                               t.GetGenericTypeDefinition() == typeof(IList<>)));
             }
 
             if (param == null)
@@ -566,10 +569,9 @@ namespace Jiifureit.Dapper.OutsideSql
             var newParam = new DynamicParameters();
             var properties = param.GetType().GetProperties();
             foreach (var info in properties)
-            {
                 if (info.PropertyType.GetInterface("System.Collections.ICollection") != null)
                 {
-                    var list = (System.Collections.ICollection)info.GetValue(param);
+                    var list = (ICollection) info.GetValue(param);
                     var i = 1;
                     foreach (var o in list)
                     {
@@ -579,7 +581,7 @@ namespace Jiifureit.Dapper.OutsideSql
                 }
                 else if (info.PropertyType.GetInterface("System.Collections.IList") != null)
                 {
-                    var list = (System.Collections.IList)info.GetValue(param);
+                    var list = (IList) info.GetValue(param);
                     var i = 1;
                     foreach (var o in list)
                     {
@@ -589,13 +591,22 @@ namespace Jiifureit.Dapper.OutsideSql
                 }
                 else if (IsGenericEnumerable(info.PropertyType))
                 {
-                    var i = 0;
-                    var val = info.GetValue(param, new object[] {i});
-                    while (val != null)
+                    var val = (IList) info.GetValue(param);
+                    if (val != null)
                     {
-                        newParam.Add(info.Name + (i+1), val);
-                        i++;
-                        val = info.GetValue(param, new object[] { i });
+                        for (var i = 0; i < val.Count; i++)
+                            newParam.Add(info.Name + (i + 1), val[i]);
+                    }
+                    else
+                    {
+                        var val2 = (ICollection) info.GetValue(param);
+                        var i = 1;
+                        foreach (var o in val2)
+                        {
+                            newParam.Add(info.Name + i, o);
+                            i++;
+                        }
+
                     }
                 }
                 else if (info.PropertyType.IsArray)
@@ -603,7 +614,7 @@ namespace Jiifureit.Dapper.OutsideSql
                     var rank = param.GetType().GetArrayRank();
                     for (var i = 0; i < rank; i++)
                     {
-                        var val = info.GetValue(param, new object[] { i });
+                        var val = info.GetValue(param, new object[] {i});
                         newParam.Add(info.Name + (i + 1), val);
                     }
                 }
@@ -612,7 +623,7 @@ namespace Jiifureit.Dapper.OutsideSql
                     var val = info.GetValue(param);
                     newParam.Add(info.Name, val);
                 }
-            }
+
             return newParam;
         }
     }

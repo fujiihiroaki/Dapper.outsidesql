@@ -21,6 +21,7 @@
 #region using
 
 using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
@@ -88,6 +89,15 @@ namespace Dapper.OutsideSql.Test
 
                 list = conn.QueryOutsideSql<Test1>(filePath, new {sarary = 500, mgrnm});
                 Assert.AreEqual(2, list.AsList().Count, "Test Count22");
+
+                var mgnramList = new List<string> { "CLARK", "FORD" }; ;
+
+                list = conn.QueryOutsideSql<Test1>(filePath, new { sarary = 500, mgrnm = mgnramList });
+                Assert.AreEqual(2, list.AsList().Count, "Test Count23");
+
+                ICollection<string> mgList = new List<string> {"CLARK", "FORD"};
+                list = conn.QueryOutsideSql<Test1>(filePath, new { sarary = 500, mgrnm = mgList });
+                Assert.AreEqual(2, list.AsList().Count, "Test Count24");
             }
 
             _logger.Debug("--- END ---");
