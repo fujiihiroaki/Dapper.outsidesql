@@ -569,6 +569,7 @@ namespace Jiifureit.Dapper.OutsideSql
             var newParam = new DynamicParameters();
             var properties = param.GetType().GetProperties();
             foreach (var info in properties)
+            {
                 if (info.PropertyType.GetInterface("System.Collections.ICollection") != null)
                 {
                     var list = (ICollection) info.GetValue(param);
@@ -623,6 +624,7 @@ namespace Jiifureit.Dapper.OutsideSql
                     var val = info.GetValue(param);
                     newParam.Add(info.Name, val);
                 }
+            }
 
             return newParam;
         }

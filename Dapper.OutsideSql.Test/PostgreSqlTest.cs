@@ -21,6 +21,7 @@
 #region using
 
 using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using Jiifureit.Dapper.OutsideSql;
@@ -84,13 +85,23 @@ namespace Dapper.OutsideSql.Test
                 conn.Open();
                 _logger.Debug("--- Start ---");
 
-                var list = conn.QueryOutsideSql<Test1>(filePath, new {sarary = 1500});
+                var list = conn.QueryOutsideSql<Test1>(filePath, new { sarary = 1500 });
                 Assert.AreEqual(7, list.AsList().Count, "Test Count21");
 
-                string[] mgrnm = {"CLARK", "FORD"};
+                string[] mgrnm = { "CLARK", "FORD" };
 
-                list = conn.QueryOutsideSql<Test1>(filePath, new {sarary = 500, mgrnm});
+                list = conn.QueryOutsideSql<Test1>(filePath, new { sarary = 500, mgrnm });
                 Assert.AreEqual(2, list.AsList().Count, "Test Count22");
+
+                var mgnramList = new List<string> { "CLARK", "FORD" };
+
+                list = conn.QueryOutsideSql<Test1>(filePath, new { sarary = 500, mgrnm = mgnramList });
+                Assert.AreEqual(2, list.AsList().Count, "Test Count23");
+
+                // NPgsql can not execute bellow.
+//                ICollection<string> mgList = new List<string> { "CLARK", "FORD" };
+//                list = conn.QueryOutsideSql<Test1>(filePath, new { sarary = 500, mgrnm = mgList });
+//                Assert.AreEqual(2, list.AsList().Count, "Test Count24");
             }
 
             _logger.Debug("--- END ---");
@@ -129,7 +140,7 @@ namespace Dapper.OutsideSql.Test
                 IDbTransaction tran = conn.BeginTransaction();
 
                 var ret = conn.ExecuteOutsideSql(filePath,
-                    new {deptno = 50, nm = "SHOP", location = "TOKYO", active = 1}, tran);
+                    new {deptno = 50, nm = "SHOP", location = "TOKYO", active = true}, tran);
                 Assert.AreEqual(1, ret, "Test Insert4");
 
                 tran.Commit();

@@ -21,6 +21,7 @@
 #region using
 
 using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using Jiifureit.Dapper.OutsideSql;
@@ -35,7 +36,7 @@ namespace Dapper.OutsideSql.Test
     [TestClass]
     public class OracleTest
     {
-        private const string CONNECTION_STRING = "Server=localhost;Database=s2dotnetdemo;Uid=mysql;Pwd=mysql";
+        private const string CONNECTION_STRING = "Source=localhost:1521/orcl;User Id=s2dotnetdemo;Password=s2dotnetdemo";
         private const string FILE_LOCATION = @"C:\projects\Dapper.outsidesql\Dapper.OutsideSql.Test";
 
         private readonly Logger _logger
@@ -86,6 +87,15 @@ namespace Dapper.OutsideSql.Test
 
                 list = conn.QueryOutsideSql<Test1>(filePath, new {sarary = 500, mgrnm});
                 Assert.AreEqual(2, list.AsList().Count, "Test Count22");
+
+                var mgnramList = new List<string> { "CLARK", "FORD" };
+
+                list = conn.QueryOutsideSql<Test1>(filePath, new { sarary = 500, mgrnm = mgnramList });
+                Assert.AreEqual(2, list.AsList().Count, "Test Count23");
+
+                ICollection<string> mgList = new List<string> { "CLARK", "FORD" };
+                list = conn.QueryOutsideSql<Test1>(filePath, new { sarary = 500, mgrnm = mgList });
+                Assert.AreEqual(2, list.AsList().Count, "Test Count24");
             }
 
             _logger.Debug("--- END ---");
