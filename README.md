@@ -1,7 +1,7 @@
 # Dapper.OutsideSql
 Dapper non-public extension for outside sql file.
 
-=======================
+------------
 
 ## Overview
 
@@ -43,10 +43,11 @@ The bind variable comments are writed as follows.
 ```sql
 IN /*Parameter name*/(..)
 ```
-In the case of IN phrase, literal (dummy data) behind the parameter name becomes required. Please describe as follows.
+In the case of IN phrase, the right side literal (dummy data) of parameter name becomes required. Please describe as follows.
 ```sql
 IN /*names*/('aaa','bbb')
 ```
+C#
 ```csharp
 var names = new string[]{"SCOTT", "SMITH", "JAMES"};
 ```
@@ -61,7 +62,7 @@ Example:
 ```sql
 /*IF hoge != null*/hoge = /*hoge*/'abc'/*END*/
 ```
-As for the IF comment, in the case of the truth, a part among /*END*/ is estimated as /*IF*/ a condition. In the case of the above, partial (hoge = /*hoge*/'abc') surrounded by the IF comment is used only when parameter hoge is not null. In addition, ELSE comment is prepared for as processing in case of the false. When a condition becomes false, the part which I described after "ELSE" is used. The ELSE comment is described as follows.
+As for the IF comment, in the case of the true, a part among /*IF*/ and /*END*/ is estimated as condition. In the case of the above, partial (hoge = /*hoge*/'abc') surrounded by the IF comment is used only when parameter hoge is not null. In addition, ELSE comment is prepared for as processing in case of the false. When a condition becomes false, the part which describing after "ELSE" is used. The ELSE comment is described as follows.
 ```sql
 /*IF hoge != null*/hoge = /*hoge*/'abc'
   -- ELSE hoge is null
@@ -69,7 +70,7 @@ As for the IF comment, in the case of the truth, a part among /*END*/ is estimat
 ```
 
 ### BEGIN comment
-You can use the BEGIN comment when you do not want to output WHERE phrase in itself, when all IF comments not to include ELSE comment in the WHERE phrase become false,  BEGIN comment is used in conjunction with IF comment as follows.
+You can use BEGIN comment when you do not want to output WHERE phrase in itself, when all IF comments not to include ELSE comment in the WHERE phrase become false,  BEGIN comment is used in conjunction with IF comment as follows.
 ```sql
 /*BEGIN*/WHERE phrase /*END*/
 ```
@@ -85,6 +86,7 @@ In the case of the above, the WHERE phrase is not output when job, deptno is nul
 
 
 ## Examples
+Text File:
 ```sql
 select mb.MEMBER_ID
      , mb.MEMBER_NAME
@@ -107,16 +109,17 @@ select mb.MEMBER_ID
  /*END*/
  order by mb.BIRTHDATE desc, mb.MEMBER_ID asc
 ```
+C#:
 ```csharp
-var path = '<text file path>';
+var path = "<text file path>";
 var memberList = conn.QueryOutputSql<Hoge>(path, new { memberId = 1, memberName = "hoge%" });
 ``` 
 
 ## DB Providers 
--SQL Server
--MySQL
--PostgreSQL
--Oracle  
+*SQL Server
+*MySQL
+*PostgreSQL
+*Oracle  
 are tested successfully.
 
 -DB2, odbc, sqlite is not tested.
@@ -134,4 +137,4 @@ Thanks Dapper, Seasar project and DBFlute project.
 
 ## Author
 
-[Hiroaki Fujii] 
+Hiroaki Fujii
