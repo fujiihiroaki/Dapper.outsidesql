@@ -116,13 +116,13 @@ var memberList = conn.QueryOutputSql<Hoge>(path, new { memberId = 1, memberName 
 ``` 
 
 ## DB Providers 
-*SQL Server
-*MySQL
-*PostgreSQL
-*Oracle  
+- SQL Server
+- MySQL
+- PostgreSQL
+- Oracle  
 are tested successfully.
 
--DB2, odbc, sqlite is not tested.
+- DB2, odbc, sqlite is not tested.
 
 ## License
 
