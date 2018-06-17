@@ -14,7 +14,7 @@ Dapper.OutsideSql does not extend Dapper. The sql statement passing to Dapper is
 Dapper.OutsideSql performs the correspondence charge account of the bind variable of the SQL sentence using comment such as /**/ or --. After having done the correspondence charge account, we can use that sql sentence such as SQL Server Management Studio because of sql comment.You should bury comment for it first if you carry out an sql sentence with the tool of the SQL file and come to output a result just as wanted.
 
 ## Usage
-You can add Dapper to your project by [NuGet library](https://www.nuget.org/packages/Dapper).  
+You can add Dapper, NLog, Microsoft.CodeAnalysis.CSharp.Scripting to your project by [NuGet library](https://www.nuget.org/packages/Dapper).  
 Next, add Dapper.OutsideSql to you project reference.
 
 You can create text files, add to you project.  
