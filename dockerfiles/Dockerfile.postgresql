@@ -1,0 +1,17 @@
+FROM postgres:latest
+
+MAINTAINER 1.0 "Hiroaki Fujii<jiifureit@jiifureit.ac>"
+
+RUN localedef -i ja_JP -c -f UTF-8 -A /usr/share/locale/locale.alias ja_JP.UTF-8
+
+ENV POSTGRES_USER s2demouser
+ENV POSTGRES_PASSWORD P@ssw0rd123
+ENV POSTGRES_INITDB_ARGS "--encoding=UTF8 --locale=C"
+ENV LANG ja_JP.utf8
+
+USER s2demouser
+
+
+USER root
+
+EXPOSE 5432

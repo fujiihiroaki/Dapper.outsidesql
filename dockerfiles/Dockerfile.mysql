@@ -1,0 +1,17 @@
+FROM mysql:latest
+
+MAINTAINER 1.0 "Hiroaki Fujii<jiifureit@jiifureit.ac>"
+
+RUN { \
+    echo '[mysqld]'; \
+    echo 'character-set-server = utf8'; \
+} > /etc/mysql/conf.d/charset.cnf
+
+ENV MYSQL_ROOT_USER root
+ENV MYSQL_ROOT_PASSWORD P@ssw0rd123
+ENV MYSQL_DATABASE s2dotnetdemo
+ENV MYSQL_USER mysql
+ENV MYSQL_PASSWORD mysql
+
+EXPOSE 3306
+CMD ["mysqld"]

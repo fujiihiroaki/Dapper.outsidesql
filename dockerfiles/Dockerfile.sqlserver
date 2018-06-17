@@ -1,0 +1,21 @@
+# mssql-server-linux
+# Maintainers: Microsoft Corporation (LuisBosquez and twright-msft on GitHub)
+# GitRepo: https://github.com/Microsoft/mssql-docker
+
+# Base OS layer: Latest Ubuntu LTS.
+FROM ubuntu:16.04
+
+ENV ACCEPT_EULA Y
+ENV SA_PASSWORD  P@ssw0rd123
+ENV MSSQL_PID Developer 
+ENV MSSQL_LCID 1041
+ENV MSSQL_COLLATION 'Japanese_XJIS_100_CS_AS_KS_WS'
+
+# Default SQL Server TCP/Port.
+EXPOSE 1433
+
+# Copy all SQL Server runtime files from build drop into image.
+COPY ./install /
+
+# Run SQL Server process.
+CMD [ "/opt/mssql/bin/sqlservr" ]
