@@ -36,7 +36,7 @@ namespace Dapper.OutsideSql.Test
     [TestClass]
     public class OracleTest
     {
-        private const string CONNECTION_STRING = "Source=localhost:1521/orcl;User Id=s2dotnetdemo;Password=s2dotnetdemo";
+        private const string CONNECTION_STRING = "Data Source=localhost:1521/pdb1;User Id=s2dotnetdemo;Password=s2dotnetdemo";
         private const string FILE_LOCATION = @"C:\projects\Dapper.outsidesql\Dapper.OutsideSql.Test";
 
         private readonly Logger _logger
@@ -74,7 +74,7 @@ namespace Dapper.OutsideSql.Test
         [TestMethod]
         public void TestSelect2()
         {
-            var filePath = FILE_LOCATION + @"\Select2Test.sql";
+            var filePath = FILE_LOCATION + @"\Select2Test_oracle.sql";
             using (var conn = new OracleConnection(CONNECTION_STRING))
             {
                 conn.Open();
