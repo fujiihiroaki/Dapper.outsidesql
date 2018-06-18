@@ -24,12 +24,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="ReadJEnc">
-      <HintPath>..\lib\ReadJEnc.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-
-  <ItemGroup>
     <None Update="App1.config">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
