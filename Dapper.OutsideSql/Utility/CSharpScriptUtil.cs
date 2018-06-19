@@ -20,9 +20,10 @@
 
 #region using
 
+using System;
 using System.Collections;
 using Jiifureit.Dapper.OutsideSql.Exception;
-using Microsoft.CodeAnalysis.CSharp.Scripting;
+using Jint;
 
 #endregion
 
@@ -41,8 +42,15 @@ namespace Jiifureit.Dapper.OutsideSql.Utility
             var arg = exp.Replace("self.", "").Replace("'", "\"");
             try
             {
-                var result = CSharpScript.RunAsync(arg, globals: ctx["self"]).Result;
-                return result.ReturnValue;
+                var engine = new Engine(cfg => cfg.AllowClr());
+
+                var ret = engine
+                    .SetValue("GetArg", new Func<string, object>(name => ((ICommandContext) ctx["self"]).GetArg(name)))
+                    .Execute(arg)
+                    .GetCompletionValue()
+                    .ToObject();
+
+                return ret;
             }
             catch (System.Exception ex)
             {

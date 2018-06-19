@@ -94,14 +94,9 @@ namespace Jiifureit.Dapper.OutsideSql.Impl
             {
                 return (Type) _argTypes[name];
             }
-            else if (_parent != null)
-            {
-                return _parent.GetArgType(name);
-            }
             else
             {
-                logger.Warn("WDAO0001", new object[] {name});
-                return null;
+                return _parent?.GetArgType(name);
             }
         }
 
