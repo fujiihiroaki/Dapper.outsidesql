@@ -14,5 +14,5 @@ where
 	/*IF jobnm != null*/ AND EMP.JOB = /*jobnm*/'SALESMAN' /*END*/
 	/*IF mgrnm != null*/ AND EMP22.ENAME in /*mgrnm*/('FORD','BLAKE') /*END*/
 	/*IF dname != null*/ AND Dept.DNAME like /*dname*/'%test%' /*END*/
-	/*IF no != null*/ AND EMP.EMPNO >= /*no*/1 /*END*/
+	/*IF no == true */ AND EMP.EMPNO >= 1 /*END*/
 /*END*/

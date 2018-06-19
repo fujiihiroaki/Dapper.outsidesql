@@ -182,8 +182,8 @@ namespace Jiifureit.Dapper.OutsideSql.Exception
     [Serializable]
     public class SqlFileNotFoundRuntimeException : SRuntimeException
     {
-        public SqlFileNotFoundRuntimeException(MemberInfo daoType, MemberInfo daoMethod, string fileName)
-            : base("EDAO0025", new object[] {daoType.Name, daoMethod.Name, fileName})
+        public SqlFileNotFoundRuntimeException(string fileName)
+            : base("EDAO0025", new object[] {fileName})
         {
         }
     }

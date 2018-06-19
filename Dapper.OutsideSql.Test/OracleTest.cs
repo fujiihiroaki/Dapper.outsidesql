@@ -94,7 +94,7 @@ namespace Dapper.OutsideSql.Test
                 Assert.AreEqual(2, list.AsList().Count, "Test Count23");
 
                 ICollection<string> mgList = new List<string> { "CLARK", "FORD" };
-                list = conn.QueryOutsideSql<Test1>(filePath, new { sarary = 500, mgrnm = mgList });
+                list = conn.QueryOutsideSql<Test1>(filePath, new { sarary = 500, mgrnm = mgList, no = true });
                 Assert.AreEqual(2, list.AsList().Count, "Test Count24");
             }
 

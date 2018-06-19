@@ -28,6 +28,7 @@ using System.IO;
 using System.Linq;
 using Dapper;
 using Hnx8.ReadJEnc;
+using Jiifureit.Dapper.OutsideSql.Exception;
 using Jiifureit.Dapper.OutsideSql.Impl;
 using Jiifureit.Dapper.OutsideSql.SqlParser;
 using Jiifureit.Dapper.OutsideSql.Utility;
@@ -496,9 +497,11 @@ namespace Jiifureit.Dapper.OutsideSql
         /// <param name="param">The parameters to use for this query.</param>
         /// <param name="type">Bind Viarables type.</param>
         /// <returns>sql</returns>
-        private static string _ParseFile(string filepath, object param,
-            BindVariableType type = BindVariableType.Question)
+        private static string _ParseFile(string filepath, object param, BindVariableType type = BindVariableType.Question)
         {
+            if (!File.Exists(filepath))
+                throw new SqlFileNotFoundRuntimeException(filepath);
+
             string sql;
 
             // Read file.
@@ -607,7 +610,6 @@ namespace Jiifureit.Dapper.OutsideSql
                             newParam.Add(info.Name + i, o);
                             i++;
                         }
-
                     }
                 }
                 else if (info.PropertyType.IsArray)
