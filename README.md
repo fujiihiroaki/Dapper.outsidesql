@@ -85,7 +85,7 @@ Example:
 In the case of the above, the WHERE phrase is not output when job, deptno is null. 
 
 
-## Examples
+## Examples 1
 Text File:
 ```sql
 select mb.MEMBER_ID
@@ -114,6 +114,17 @@ C#:
 var path = "<text file path>";
 var memberList = conn.QueryOutputSql<Hoge>(path, new { memberId = 1, memberName = "hoge%" });
 ``` 
+
+## Examples 2
+C#:
+```csharp
+var path = "<text file path>";
+var param = new DynamicParameters();
+param.Add("memberId", 1);
+param.Add("memberName", "hoge%");
+memberList = conn.QueryOutsideSql<Test1>(path, param);
+``` 
+
 
 ## DB Providers 
 - SQL Server

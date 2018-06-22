@@ -26,6 +26,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using Dapper;
 using Hnx8.ReadJEnc;
 using Jiifureit.Dapper.OutsideSql.Exception;
@@ -530,11 +531,27 @@ namespace Jiifureit.Dapper.OutsideSql
                 // hold parameters.
                 if (!(param is IEnumerable<KeyValuePair<string, object>> dictionary))
                 {
-                    var proprties = param.GetType().GetProperties();
-                    proprties.AsList().ForEach(p =>
+                    if (param is DynamicParameters dynamicParam)
                     {
-                        ctx.AddArg(p.Name, p.GetValue(param), p.GetValue(param).GetType());
-                    });
+                        var lookup = (SqlMapper.IParameterLookup)dynamicParam;
+                        using (var names = dynamicParam.ParameterNames.GetEnumerator())
+                        {
+                            while (names.MoveNext())
+                            {
+                                var name = names.Current;
+                                var p = lookup[name];
+                                ctx.AddArg(name, p, p.GetType());
+                            }
+                        }
+                    }
+                    else
+                    {
+                        var proprties = param.GetType().GetProperties();
+                        proprties.AsList().ForEach(p =>
+                        {
+                            ctx.AddArg(p.Name, p.GetValue(param), p.GetValue(param).GetType());
+                        });
+                    }
                 }
                 else
                 {
@@ -551,7 +568,57 @@ namespace Jiifureit.Dapper.OutsideSql
             return ctx.Sql;
         }
 
+        /// <summary>
+        /// Recreate arguments.
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns>Recreated arguments parameter</returns>
         private static object _CreateDynamicParameters(object param)
+        {
+            if (param == null)
+                return null;
+
+            if (param is IEnumerable<KeyValuePair<string, object>>)
+                return param;
+
+            // Convert parameters;
+            var newParam = new DynamicParameters();
+            if (param is DynamicParameters dynamicParam)
+            {
+                var lookup = (SqlMapper.IParameterLookup) dynamicParam;
+                using (var names = dynamicParam.ParameterNames.GetEnumerator())
+                {
+                    while (names.MoveNext())
+                    {
+                        var name = names.Current;
+                        var p = lookup[name];
+                        _CreateParameter(newParam, p, p.GetType(), name);
+                    }
+                }
+            }
+            else
+            {
+                var properties = param.GetType().GetProperties();
+                foreach (var info in properties)
+                {
+                    var val = info.GetValue(param);
+                    var type = info.PropertyType;
+                    var name = info.Name;
+                    _CreateParameter(newParam, val, type, name);
+                }
+            }
+
+            return newParam;
+        }
+
+        /// <summary>
+        /// RecreateParameter
+        /// </summary>
+        /// <param name="newParam">Recreate paramerer</param>
+        /// <param name="value">parameter value</param>
+        /// <param name="info">parameter type</param>
+        /// <param name="name">parameter name</param>
+        private static void _CreateParameter(DynamicParameters newParam, object value, Type info, string name)
         {
             // IEnumerable<> Check
             bool IsGenericEnumerable(Type type)
@@ -562,73 +629,60 @@ namespace Jiifureit.Dapper.OutsideSql
                                t.GetGenericTypeDefinition() == typeof(IList<>)));
             }
 
-            if (param == null)
-                return null;
-
-            if (param is IEnumerable<KeyValuePair<string, object>>)
-                return param;
-
-            // Convert parameters;
-            var newParam = new DynamicParameters();
-            var properties = param.GetType().GetProperties();
-            foreach (var info in properties)
+            if (info.GetInterface("System.Collections.ICollection") != null)
             {
-                if (info.PropertyType.GetInterface("System.Collections.ICollection") != null)
+                var list = (ICollection) value;
+                var i = 1;
+                foreach (var o in list)
                 {
-                    var list = (ICollection) info.GetValue(param);
-                    var i = 1;
-                    foreach (var o in list)
-                    {
-                        newParam.Add(info.Name + i, o);
-                        i++;
-                    }
+                    newParam.Add(name + i, o);
+                    i++;
                 }
-                else if (info.PropertyType.GetInterface("System.Collections.IList") != null)
+            }
+            else if (info.GetInterface("System.Collections.IList") != null)
+            {
+                var list = (IList) value;
+                var i = 1;
+                foreach (var o in list)
                 {
-                    var list = (IList) info.GetValue(param);
-                    var i = 1;
-                    foreach (var o in list)
-                    {
-                        newParam.Add(info.Name + i, o);
-                        i++;
-                    }
+                    newParam.Add(name + i, o);
+                    i++;
                 }
-                else if (IsGenericEnumerable(info.PropertyType))
+            }
+            else if (IsGenericEnumerable(info))
+            {
+                var val = (IList) value;
+                if (val != null)
                 {
-                    var val = (IList) info.GetValue(param);
-                    if (val != null)
+                    for (var i = 0; i < val.Count; i++)
                     {
-                        for (var i = 0; i < val.Count; i++)
-                            newParam.Add(info.Name + (i + 1), val[i]);
-                    }
-                    else
-                    {
-                        var val2 = (ICollection) info.GetValue(param);
-                        var i = 1;
-                        foreach (var o in val2)
-                        {
-                            newParam.Add(info.Name + i, o);
-                            i++;
-                        }
-                    }
-                }
-                else if (info.PropertyType.IsArray)
-                {
-                    var rank = param.GetType().GetArrayRank();
-                    for (var i = 0; i < rank; i++)
-                    {
-                        var val = info.GetValue(param, new object[] {i});
-                        newParam.Add(info.Name + (i + 1), val);
+                        newParam.Add(name + (i + 1), val[i]);
                     }
                 }
                 else
                 {
-                    var val = info.GetValue(param);
-                    newParam.Add(info.Name, val);
+                    var val2 = (ICollection) value;
+                    var i = 1;
+                    foreach (var o in val2)
+                    {
+                        newParam.Add(name + i, o);
+                        i++;
+                    }
                 }
             }
-
-            return newParam;
-        }
+            else if (info.IsArray)
+            {
+                var rank = value.GetType().GetArrayRank();
+                for (var i = 0; i < rank; i++)
+                {
+                    var val = (value as Array).GetValue(i);
+                    newParam.Add(name + (i + 1), val);
+                }
+            }
+            else
+            {
+                newParam.Add(name, value);
+            }
+        }       
     }
 }

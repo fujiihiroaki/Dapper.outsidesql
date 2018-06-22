@@ -29,10 +29,10 @@ namespace Jiifureit.Dapper.OutsideSql.Utility
     public static class DataProviderUtil
     {
         /// <summary>
-        ///     バインド変数タイプを取得する
+        ///     Get kind of Bind Variables from Connection object.
         /// </summary>
-        /// <param name="connection">コマンドオブジェクト</param>
-        /// <returns>バインド変数タイプ</returns>
+        /// <param name="connection">DbConnection object</param>
+        /// <returns>Bind Virables type</returns>
         public static BindVariableType GetBindVariableType(IDbConnection connection)
         {
             var name = connection.GetType().Name;

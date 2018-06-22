@@ -24,7 +24,6 @@ using System;
 using System.Collections;
 using System.Text;
 using Jiifureit.Dapper.OutsideSql.Utility;
-using NLog;
 
 #endregion
 
@@ -32,7 +31,6 @@ namespace Jiifureit.Dapper.OutsideSql.Impl
 {
     public class CommandContextImpl : ICommandContext
     {
-        private static readonly Logger logger = LogManager.GetCurrentClassLogger();
         private readonly Hashtable _argNames = new Hashtable(StringComparer.OrdinalIgnoreCase);
 
         private readonly Hashtable _args = new Hashtable(StringComparer.OrdinalIgnoreCase);

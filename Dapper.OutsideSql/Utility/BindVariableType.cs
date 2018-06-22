@@ -19,7 +19,7 @@
 namespace Jiifureit.Dapper.OutsideSql.Utility
 {
     /// <summary>
-    /// ƒoƒCƒ“ƒh•Ï”‚Ìí—Ş
+    /// The kind of Bind Variables.
     /// </summary>
     public enum BindVariableType
     {

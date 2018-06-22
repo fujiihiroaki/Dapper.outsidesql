@@ -40,7 +40,7 @@ namespace Jiifureit.Dapper.OutsideSql.Nodes
                 ["out"] = Console.Out,
                 ["err"] = Console.Error
             };
-            return CSharpScriptUtil.Evaluate(expression, ht, null);
+            return ScriptEvaluateUtil.Evaluate(expression, ht, null);
         }
 
         #region INode ÉÅÉìÉo

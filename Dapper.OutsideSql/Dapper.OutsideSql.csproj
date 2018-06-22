@@ -7,7 +7,7 @@
     <Product>Jiifureit.Dapper.OutsideSql</Product>
     <PackageId>Jiifureit.Dapper.OutsideSql</PackageId>
     <Copyright>2018 Hiroaki Fujii</Copyright>
-    <Version>0.4.0-beta01</Version>
+    <Version>0.4.0-beta02</Version>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageProjectUrl>https://github.com/fujiihiroaki/Dapper.outsidesql</PackageProjectUrl>
     <RepositoryUrl>https://github.com/fujiihiroaki/Dapper.outsidesql</RepositoryUrl>
@@ -16,7 +16,8 @@
     <PackageLicenseUrl>http://www.apache.org/licenses/LICENSE-2.0</PackageLicenseUrl>
     <SignAssembly>false</SignAssembly>
     <Description>Dapper extension adding outside sql funtion reading text file.</Description>
-    <PackageReleaseNotes>0.40 change from Rosyln to Jint script engine because performance improvements of parsing SQL file .
+    <PackageReleaseNotes>0.4.0-beta02 supports DynamicParameters in argument.
+0.4.0-beta01 changes from Rosyln to Jint script engine because performance improvements of parsing SQL file .
 0.30 first beta release.
         add .NET framwork 4.7
 </PackageReleaseNotes>

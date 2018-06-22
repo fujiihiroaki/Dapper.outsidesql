@@ -30,9 +30,9 @@ using Jint;
 namespace Jiifureit.Dapper.OutsideSql.Utility
 {
     /// <summary>
-    ///     Rosylnでコードを実行します
+    ///     Execute using Jint java script engine.
     /// </summary>
-    public sealed class CSharpScriptUtil
+    public sealed class ScriptEvaluateUtil
     {
         public static object Evaluate(string exp, Hashtable ctx, object root)
         {
@@ -42,8 +42,10 @@ namespace Jiifureit.Dapper.OutsideSql.Utility
             var arg = exp.Replace("self.", "").Replace("'", "\"");
             try
             {
+                // Create engine.
                 var engine = new Engine(cfg => cfg.AllowClr());
 
+                // run engine and get value.
                 var ret = engine
                     .SetValue("GetArg", new Func<string, object>(name => ((ICommandContext) ctx["self"]).GetArg(name)))
                     .Execute(arg)

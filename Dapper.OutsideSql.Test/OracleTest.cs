@@ -96,6 +96,13 @@ namespace Dapper.OutsideSql.Test
                 ICollection<string> mgList = new List<string> { "CLARK", "FORD" };
                 list = conn.QueryOutsideSql<Test1>(filePath, new { sarary = 500, mgrnm = mgList, no = true });
                 Assert.AreEqual(2, list.AsList().Count, "Test Count24");
+
+                var param = new DynamicParameters();
+                param.Add("sarary", 500);
+                param.Add("mgrnm", mgList);
+                param.Add("no", true);
+                list = conn.QueryOutsideSql<Test1>(filePath, param );
+                Assert.AreEqual(2, list.AsList().Count, "Test Count25");
             }
 
             _logger.Debug("--- END ---");
