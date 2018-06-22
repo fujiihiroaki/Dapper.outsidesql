@@ -122,7 +122,7 @@ var path = "<text file path>";
 var param = new DynamicParameters();
 param.Add("memberId", 1);
 param.Add("memberName", "hoge%");
-memberList = conn.QueryOutsideSql<Test1>(path, param);
+memberList = conn.QueryOutsideSql<Hoge>(path, param);
 ``` 
 
 
