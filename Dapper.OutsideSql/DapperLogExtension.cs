@@ -23,10 +23,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.IO;
 using Dapper;
-using Hnx8.ReadJEnc;
-using Jiifureit.Dapper.OutsideSql.Exception;
 using Jiifureit.Dapper.OutsideSql.Impl;
 using Jiifureit.Dapper.OutsideSql.SqlParser;
 using Jiifureit.Dapper.OutsideSql.Utility;
@@ -37,9 +34,9 @@ using NLog;
 namespace Jiifureit.Dapper.OutsideSql
 {
     /// <summary>
-    ///     Dapper Extension for using Outside SQL file.
+    ///     Dapper Extension for writing sql to logfile.
     /// </summary>
-    public static class DapperOutsideSqlExtension
+    public static class DapperLogExtension
     {
         private static readonly Logger logger = LogManager.GetCurrentClassLogger();
 
@@ -47,40 +44,40 @@ namespace Jiifureit.Dapper.OutsideSql
         ///     Execute parameterized SQL.
         /// </summary>
         /// <param name="cnn">The connection to query on.</param>
-        /// <param name="filepath">The SQL to execute for this query.</param>
+        /// <param name="sql">The SQL to execute for the query.</param>
         /// <param name="param">The parameters to use for this query.</param>
         /// <param name="transaction">The transaction to use for this query.</param>
         /// <param name="commandTimeout">Number of seconds before command execution timeout.</param>
         /// <param name="commandType">Is it a stored proc or a batch?</param>
         /// <returns>The number of rows affected.</returns>
-        public static int ExecuteOutsideSql(this IDbConnection cnn, string filepath, object param = null,
+        public static int ExecuteLog(this IDbConnection cnn, string sql, object param = null,
             IDbTransaction transaction = null,
             int? commandTimeout = null, CommandType? commandType = null)
         {
             var bindType = DataProviderUtil.GetBindVariableType(cnn);
-            var sql = _ParseFile(filepath, param, bindType);
+            var newSql = _LogSql(sql, param, bindType);
             var newParam = DynamicParameterUtil.CreateDynamicParameters(param);
-            return cnn.Execute(sql, newParam, transaction, commandTimeout, commandType);
+            return cnn.Execute(newSql, newParam, transaction, commandTimeout, commandType);
         }
 
         /// <summary>
         ///     Execute parameterized SQL that selects a single value.
         /// </summary>
         /// <param name="cnn">The connection to execute on.</param>
-        /// <param name="filepath">The SQL to execute.</param>
+        /// <param name="sql">The SQL to execute.</param>
         /// <param name="param">The parameters to use for this command.</param>
         /// <param name="transaction">The transaction to use for this command.</param>
         /// <param name="commandTimeout">Number of seconds before command execution timeout.</param>
         /// <param name="commandType">Is it a stored proc or a batch?</param>
         /// <returns>The first cell selected as <see cref="object" />.</returns>
-        public static object ExecuteScalarOutsideSql(this IDbConnection cnn, string filepath, object param = null,
+        public static object ExecuteScalarLog(this IDbConnection cnn, string sql, object param = null,
             IDbTransaction transaction = null,
             int? commandTimeout = null, CommandType? commandType = null)
         {
             var bindType = DataProviderUtil.GetBindVariableType(cnn);
-            var sql = _ParseFile(filepath, param, bindType);
+            var newSql = _LogSql(sql, param, bindType);
             var newParam = DynamicParameterUtil.CreateDynamicParameters(param);
-            return cnn.ExecuteScalar(sql, newParam, transaction, commandTimeout, commandType);
+            return cnn.ExecuteScalar(newSql, newParam, transaction, commandTimeout, commandType);
         }
 
         /// <summary>
@@ -88,20 +85,20 @@ namespace Jiifureit.Dapper.OutsideSql
         /// </summary>
         /// <typeparam name="T">The type to return.</typeparam>
         /// <param name="cnn">The connection to execute on.</param>
-        /// <param name="filepath">The SQL to execute.</param>
+        /// <param name="sql">The SQL to execute.</param>
         /// <param name="param">The parameters to use for this command.</param>
         /// <param name="transaction">The transaction to use for this command.</param>
         /// <param name="commandTimeout">Number of seconds before command execution timeout.</param>
         /// <param name="commandType">Is it a stored proc or a batch?</param>
         /// <returns>The first cell returned, as <typeparamref name="T" />.</returns>
-        public static T ExecuteScalarOutsideSql<T>(this IDbConnection cnn, string filepath, object param = null,
+        public static T ExecuteScalarLog<T>(this IDbConnection cnn, string sql, object param = null,
             IDbTransaction transaction = null,
             int? commandTimeout = null, CommandType? commandType = null)
         {
             var bindType = DataProviderUtil.GetBindVariableType(cnn);
-            var sql = _ParseFile(filepath, param, bindType);
+            var newSql = _LogSql(sql, param, bindType);
             var newParam = DynamicParameterUtil.CreateDynamicParameters(param);
-            return cnn.ExecuteScalar<T>(sql, newParam, transaction, commandTimeout, commandType);
+            return cnn.ExecuteScalar<T>(newSql, newParam, transaction, commandTimeout, commandType);
         }
 
 
@@ -109,115 +106,112 @@ namespace Jiifureit.Dapper.OutsideSql
         ///     Execute parameterized SQL and return an <see cref="IDataReader" />.
         /// </summary>
         /// <param name="cnn">The connection to execute on.</param>
-        /// <param name="filepath">The SQL to execute.</param>
+        /// <param name="sql">The SQL to execute.</param>
         /// <param name="param">The parameters to use for this command.</param>
         /// <param name="transaction">The transaction to use for this command.</param>
         /// <param name="commandTimeout">Number of seconds before command execution timeout.</param>
         /// <param name="commandType">Is it a stored proc or a batch?</param>
-        public static IDataReader ExecuteReaderOutsideSql(this IDbConnection cnn, string filepath, object param = null,
+        public static IDataReader ExecuteReaderLog(this IDbConnection cnn, string sql, object param = null,
             IDbTransaction transaction = null,
             int? commandTimeout = null, CommandType? commandType = null)
         {
             var bindType = DataProviderUtil.GetBindVariableType(cnn);
-            var sql = _ParseFile(filepath, param, bindType);
+            var newSql = _LogSql(sql, param, bindType);
             var newParam = DynamicParameterUtil.CreateDynamicParameters(param);
-            return cnn.ExecuteReader(sql, newParam, transaction, commandTimeout, commandType);
+            return cnn.ExecuteReader(newSql, newParam, transaction, commandTimeout, commandType);
         }
 
         /// <summary>
         ///     Return a sequence of dynamic objects with properties matching the columns.
         /// </summary>
         /// <param name="cnn">The connection to query on.</param>
-        /// <param name="filepath">The SQL file to execute for this query.</param>
+        /// <param name="sql">The SQL to execute for this query.</param>
         /// <param name="param">The parameters to pass, if any.</param>
         /// <param name="transaction">The transaction to use, if any.</param>
         /// <param name="buffered">Whether to buffer the results in memory.</param>
         /// <param name="commandTimeout">The command timeout (in seconds).</param>
         /// <param name="commandType">The type of command to execute.</param>
         /// <remarks>Note: each row can be accessed via "dynamic", or by casting to an IDictionary&lt;string,object&gt;</remarks>
-        public static IEnumerable<dynamic> QueryOutsideSql(this IDbConnection cnn, string filepath, object param = null,
+        public static IEnumerable<dynamic> QueryLog(this IDbConnection cnn, string sql, object param = null,
             IDbTransaction transaction = null,
             bool buffered = true, int? commandTimeout = null, CommandType? commandType = null)
         {
-            return QueryOutsideSql<dynamic>(cnn, filepath, param, transaction, buffered, commandTimeout, commandType);
+            return QueryLog<dynamic>(cnn, sql, param, transaction, buffered, commandTimeout, commandType);
         }
 
         /// <summary>
         ///     Return a dynamic object with properties matching the columns.
         /// </summary>
         /// <param name="cnn">The connection to query on.</param>
-        /// <param name="filepath">The SQL file to execute for this query.</param>
+        /// <param name="sql">The SQL to execute for this query.</param>
         /// <param name="param">The parameters to pass, if any.</param>
         /// <param name="transaction">The transaction to use, if any.</param>
         /// <param name="commandTimeout">The command timeout (in seconds).</param>
         /// <param name="commandType">The type of command to execute.</param>
         /// <remarks>Note: the row can be accessed via "dynamic", or by casting to an IDictionary&lt;string,object&gt;</remarks>
-        public static dynamic QueryFirstOutsideSql(this IDbConnection cnn, string filepath, object param = null,
+        public static dynamic QueryFirstLog(this IDbConnection cnn, string sql, object param = null,
             IDbTransaction transaction = null,
             int? commandTimeout = null, CommandType? commandType = null)
         {
-            return QueryFirstOutsideSql<dynamic>(cnn, filepath, param, transaction, commandTimeout, commandType);
+            return QueryFirstLog<dynamic>(cnn, sql, param, transaction, commandTimeout, commandType);
         }
 
         /// <summary>
         ///     Return a dynamic object with properties matching the columns.
         /// </summary>
         /// <param name="cnn">The connection to query on.</param>
-        /// <param name="filepath">The SQL file to execute for this query.</param>
+        /// <param name="sql">The SQL to execute for the query.</param>
         /// <param name="param">The parameters to pass, if any.</param>
         /// <param name="transaction">The transaction to use, if any.</param>
         /// <param name="commandTimeout">The command timeout (in seconds).</param>
         /// <param name="commandType">The type of command to execute.</param>
         /// <remarks>Note: the row can be accessed via "dynamic", or by casting to an IDictionary&lt;string,object&gt;</remarks>
-        public static dynamic QueryFirstOrDefaultOutsideSql(this IDbConnection cnn, string filepath,
+        public static dynamic QueryFirstOrDefaultLog(this IDbConnection cnn, string sql,
             object param = null, IDbTransaction transaction = null,
             int? commandTimeout = null, CommandType? commandType = null)
         {
-            return QueryFirstOrDefaultOutsideSql<dynamic>(cnn, filepath, param, transaction, commandTimeout,
-                commandType);
+            return QueryFirstOrDefaultLog<dynamic>(cnn, sql, param, transaction, commandTimeout, commandType);
         }
 
         /// <summary>
         ///     Return a dynamic object with properties matching the columns.
         /// </summary>
         /// <param name="cnn">The connection to query on.</param>
-        /// <param name="filepath">The SQL file to execute for this query.</param>
+        /// <param name="sql">The SQL to execute for the query.</param>
         /// <param name="param">The parameters to pass, if any.</param>
         /// <param name="transaction">The transaction to use, if any.</param>
         /// <param name="commandTimeout">The command timeout (in seconds).</param>
         /// <param name="commandType">The type of command to execute.</param>
         /// <remarks>Note: the row can be accessed via "dynamic", or by casting to an IDictionary&lt;string,object&gt;</remarks>
-        public static dynamic QuerySingleOutsideSql(this IDbConnection cnn, string filepath, object param = null,
+        public static dynamic QuerySingleLog(this IDbConnection cnn, string sql, object param = null,
             IDbTransaction transaction = null,
             int? commandTimeout = null, CommandType? commandType = null)
         {
-            return QuerySingleOutsideSql<dynamic>(cnn, filepath, param, transaction, commandTimeout, commandType);
+            return QuerySingleLog<dynamic>(cnn, sql, param, transaction, commandTimeout, commandType);
         }
 
         /// <summary>
         ///     Return a dynamic object with properties matching the columns.
         /// </summary>
         /// <param name="cnn">The connection to query on.</param>
-        /// <param name="filepath">The SQL file to execute for this query.</param>
+        /// <param name="sql">The SQL to execute for the query.</param>
         /// <param name="param">The parameters to pass, if any.</param>
         /// <param name="transaction">The transaction to use, if any.</param>
         /// <param name="commandTimeout">The command timeout (in seconds).</param>
         /// <param name="commandType">The type of command to execute.</param>
         /// <remarks>Note: the row can be accessed via "dynamic", or by casting to an IDictionary&lt;string,object&gt;</remarks>
-        public static dynamic QuerySingleOrDefaultOutsideSql(this IDbConnection cnn, string filepath,
+        public static dynamic QuerySingleOrDefaultLog(this IDbConnection cnn, string sql,
             object param = null, IDbTransaction transaction = null,
             int? commandTimeout = null, CommandType? commandType = null)
         {
-            return QuerySingleOrDefaultOutsideSql<dynamic>(cnn, filepath, param, transaction, commandTimeout,
-                commandType);
+            return QuerySingleOrDefaultLog<dynamic>(cnn, sql, param, transaction, commandTimeout, commandType);
         }
 
         /// <summary>
         ///     Executes a query, returning the data typed as <typeparamref name="T" />.
         /// </summary>
-        /// <typeparam name="T">The type of results to return.</typeparam>
         /// <param name="cnn">The connection to query on.</param>
-        /// <param name="filepath">The SQL file to execute for this query.</param>
+        /// <param name="sql">The SQL to execute for the query.</param>
         /// <param name="param">The parameters to pass, if any.</param>
         /// <param name="transaction">The transaction to use, if any.</param>
         /// <param name="buffered">Whether to buffer results in memory.</param>
@@ -228,14 +222,14 @@ namespace Jiifureit.Dapper.OutsideSql
         ///     column in assumed, otherwise an instance is
         ///     created per row, and a direct column-name===member-name mapping is assumed (case insensitive).
         /// </returns>
-        public static IEnumerable<T> QueryOutsideSql<T>(this IDbConnection cnn, string filepath, object param = null,
+        public static IEnumerable<T> QueryLog<T>(this IDbConnection cnn, string sql, object param = null,
             IDbTransaction transaction = null,
             bool buffered = true, int? commandTimeout = null, CommandType? commandType = null)
         {
             var bindType = DataProviderUtil.GetBindVariableType(cnn);
-            var sql = _ParseFile(filepath, param, bindType);
+            var newSql = _LogSql(sql, param, bindType);
             var newParam = DynamicParameterUtil.CreateDynamicParameters(param);
-            return cnn.Query<T>(sql, newParam, transaction, buffered, commandTimeout, commandType);
+            return cnn.Query<T>(newSql, newParam, transaction, buffered, commandTimeout, commandType);
         }
 
         /// <summary>
@@ -243,7 +237,7 @@ namespace Jiifureit.Dapper.OutsideSql
         /// </summary>
         /// <typeparam name="T">The type of result to return.</typeparam>
         /// <param name="cnn">The connection to query on.</param>
-        /// <param name="filepath">The SQL file to execute for this query.</param>
+        /// <param name="sql">The SQL to execute for the query.</param>
         /// <param name="param">The parameters to pass, if any.</param>
         /// <param name="transaction">The transaction to use, if any.</param>
         /// <param name="commandTimeout">The command timeout (in seconds).</param>
@@ -253,39 +247,14 @@ namespace Jiifureit.Dapper.OutsideSql
         ///     column in assumed, otherwise an instance is
         ///     created per row, and a direct column-name===member-name mapping is assumed (case insensitive).
         /// </returns>
-        public static T QueryFirstOutsideSql<T>(this IDbConnection cnn, string filepath, object param = null,
-            IDbTransaction transaction = null,
-            int? commandTimeout = null, CommandType? commandType = null)
-        {
-            var type = DataProviderUtil.GetBindVariableType(cnn);
-            var sql = _ParseFile(filepath, param, type);
-            var newParam = DynamicParameterUtil.CreateDynamicParameters(param);
-            return cnn.QueryFirst<T>(sql, newParam, transaction, commandTimeout, commandType);
-        }
-
-        /// <summary>
-        ///     Executes a single-row query, returning the data typed as <typeparamref name="T" />.
-        /// </summary>
-        /// <typeparam name="T">The type of result to return.</typeparam>
-        /// <param name="cnn">The connection to query on.</param>
-        /// <param name="filepath">The SQL file to execute for this query.</param>
-        /// <param name="param">The parameters to pass, if any.</param>
-        /// <param name="transaction">The transaction to use, if any.</param>
-        /// <param name="commandTimeout">The command timeout (in seconds).</param>
-        /// <param name="commandType">The type of command to execute.</param>
-        /// <returns>
-        ///     A sequence of data of the supplied type; if a basic type (int, string, etc) is queried then the data from the first
-        ///     column in assumed, otherwise an instance is
-        ///     created per row, and a direct column-name===member-name mapping is assumed (case insensitive).
-        /// </returns>
-        public static T QueryFirstOrDefaultOutsideSql<T>(this IDbConnection cnn, string filepath, object param = null,
+        public static T QueryFirstLog<T>(this IDbConnection cnn, string sql, object param = null,
             IDbTransaction transaction = null,
             int? commandTimeout = null, CommandType? commandType = null)
         {
             var bindType = DataProviderUtil.GetBindVariableType(cnn);
-            var sql = _ParseFile(filepath, param, bindType);
+            var newSql = _LogSql(sql, param, bindType);
             var newParam = DynamicParameterUtil.CreateDynamicParameters(param);
-            return cnn.QueryFirstOrDefault<T>(sql, newParam, transaction, commandTimeout, commandType);
+            return cnn.QueryFirst<T>(newSql, newParam, transaction, commandTimeout, commandType);
         }
 
         /// <summary>
@@ -293,7 +262,7 @@ namespace Jiifureit.Dapper.OutsideSql
         /// </summary>
         /// <typeparam name="T">The type of result to return.</typeparam>
         /// <param name="cnn">The connection to query on.</param>
-        /// <param name="filepath">The SQL file to execute for this query.</param>
+        /// <param name="sql">The SQL to execute for the query.</param>
         /// <param name="param">The parameters to pass, if any.</param>
         /// <param name="transaction">The transaction to use, if any.</param>
         /// <param name="commandTimeout">The command timeout (in seconds).</param>
@@ -303,14 +272,14 @@ namespace Jiifureit.Dapper.OutsideSql
         ///     column in assumed, otherwise an instance is
         ///     created per row, and a direct column-name===member-name mapping is assumed (case insensitive).
         /// </returns>
-        public static T QuerySingleOutsideSql<T>(this IDbConnection cnn, string filepath, object param = null,
+        public static T QueryFirstOrDefaultLog<T>(this IDbConnection cnn, string sql, object param = null,
             IDbTransaction transaction = null,
             int? commandTimeout = null, CommandType? commandType = null)
         {
             var bindType = DataProviderUtil.GetBindVariableType(cnn);
-            var sql = _ParseFile(filepath, param, bindType);
+            var newSql = _LogSql(sql, param, bindType);
             var newParam = DynamicParameterUtil.CreateDynamicParameters(param);
-            return cnn.QuerySingle<T>(sql, newParam, transaction, commandTimeout, commandType);
+            return cnn.QueryFirstOrDefault<T>(newSql, newParam, transaction, commandTimeout, commandType);
         }
 
         /// <summary>
@@ -318,7 +287,7 @@ namespace Jiifureit.Dapper.OutsideSql
         /// </summary>
         /// <typeparam name="T">The type of result to return.</typeparam>
         /// <param name="cnn">The connection to query on.</param>
-        /// <param name="filepath">The SQL file to execute for this query.</param>
+        /// <param name="sql">The SQL to execute for the query.</param>
         /// <param name="param">The parameters to pass, if any.</param>
         /// <param name="transaction">The transaction to use, if any.</param>
         /// <param name="commandTimeout">The command timeout (in seconds).</param>
@@ -328,14 +297,39 @@ namespace Jiifureit.Dapper.OutsideSql
         ///     column in assumed, otherwise an instance is
         ///     created per row, and a direct column-name===member-name mapping is assumed (case insensitive).
         /// </returns>
-        public static T QuerySingleOrDefaultOutsideSql<T>(this IDbConnection cnn, string filepath, object param = null,
+        public static T QuerySingleLog<T>(this IDbConnection cnn, string sql, object param = null,
             IDbTransaction transaction = null,
             int? commandTimeout = null, CommandType? commandType = null)
         {
             var bindType = DataProviderUtil.GetBindVariableType(cnn);
-            var sql = _ParseFile(filepath, param, bindType);
+            var newSql = _LogSql(sql, param, bindType);
             var newParam = DynamicParameterUtil.CreateDynamicParameters(param);
-            return cnn.QuerySingleOrDefault<T>(sql, newParam, transaction, commandTimeout, commandType);
+            return cnn.QuerySingle<T>(newSql, newParam, transaction, commandTimeout, commandType);
+        }
+
+        /// <summary>
+        ///     Executes a single-row query, returning the data typed as <typeparamref name="T" />.
+        /// </summary>
+        /// <typeparam name="T">The type of result to return.</typeparam>
+        /// <param name="cnn">The connection to query on.</param>
+        /// <param name="sql">The SQL to execute for the query.</param>
+        /// <param name="param">The parameters to pass, if any.</param>
+        /// <param name="transaction">The transaction to use, if any.</param>
+        /// <param name="commandTimeout">The command timeout (in seconds).</param>
+        /// <param name="commandType">The type of command to execute.</param>
+        /// <returns>
+        ///     A sequence of data of the supplied type; if a basic type (int, string, etc) is queried then the data from the first
+        ///     column in assumed, otherwise an instance is
+        ///     created per row, and a direct column-name===member-name mapping is assumed (case insensitive).
+        /// </returns>
+        public static T QuerySingleOrDefaultLog<T>(this IDbConnection cnn, string sql, object param = null,
+            IDbTransaction transaction = null,
+            int? commandTimeout = null, CommandType? commandType = null)
+        {
+            var bindType = DataProviderUtil.GetBindVariableType(cnn);
+            var newSql = _LogSql(sql, param, bindType);
+            var newParam = DynamicParameterUtil.CreateDynamicParameters(param);
+            return cnn.QuerySingleOrDefault<T>(newSql, newParam, transaction, commandTimeout, commandType);
         }
 
         /// <summary>
@@ -343,7 +337,7 @@ namespace Jiifureit.Dapper.OutsideSql
         /// </summary>
         /// <param name="cnn">The connection to query on.</param>
         /// <param name="type">The type to return.</param>
-        /// <param name="filepath">The SQL file to execute for this query.</param>
+        /// <param name="sql">The SQL to execute for the query.</param>
         /// <param name="param">The parameters to pass, if any.</param>
         /// <param name="transaction">The transaction to use, if any.</param>
         /// <param name="buffered">Whether to buffer results in memory.</param>
@@ -355,14 +349,14 @@ namespace Jiifureit.Dapper.OutsideSql
         ///     column in assumed, otherwise an instance is
         ///     created per row, and a direct column-name===member-name mapping is assumed (case insensitive).
         /// </returns>
-        public static IEnumerable<object> QueryOutsideSql(this IDbConnection cnn, Type type, string filepath,
+        public static IEnumerable<object> QueryLog(this IDbConnection cnn, Type type, string sql,
             object param = null, IDbTransaction transaction = null,
             bool buffered = true, int? commandTimeout = null, CommandType? commandType = null)
         {
             var bindType = DataProviderUtil.GetBindVariableType(cnn);
-            var sql = _ParseFile(filepath, param, bindType);
+            var newSql = _LogSql(sql, param, bindType);
             var newParam = DynamicParameterUtil.CreateDynamicParameters(param);
-            return cnn.Query(type, sql, newParam, transaction, buffered, commandTimeout, commandType);
+            return cnn.Query(type, newSql, newParam, transaction, buffered, commandTimeout, commandType);
         }
 
         /// <summary>
@@ -370,7 +364,7 @@ namespace Jiifureit.Dapper.OutsideSql
         /// </summary>
         /// <param name="cnn">The connection to query on.</param>
         /// <param name="type">The type to return.</param>
-        /// <param name="filepath">The SQL file to execute for this query.</param>
+        /// <param name="sql">The SQL to execute for the query.</param>
         /// <param name="param">The parameters to pass, if any.</param>
         /// <param name="transaction">The transaction to use, if any.</param>
         /// <param name="commandTimeout">The command timeout (in seconds).</param>
@@ -381,14 +375,14 @@ namespace Jiifureit.Dapper.OutsideSql
         ///     column in assumed, otherwise an instance is
         ///     created per row, and a direct column-name===member-name mapping is assumed (case insensitive).
         /// </returns>
-        public static object QueryFirstOutsideSql(this IDbConnection cnn, Type type, string filepath,
+        public static object QueryFirstLog(this IDbConnection cnn, Type type, string sql,
             object param = null, IDbTransaction transaction = null,
             int? commandTimeout = null, CommandType? commandType = null)
         {
             var bindType = DataProviderUtil.GetBindVariableType(cnn);
-            var sql = _ParseFile(filepath, param, bindType);
+            var newSql = _LogSql(sql, param, bindType);
             var newParam = DynamicParameterUtil.CreateDynamicParameters(param);
-            return cnn.QueryFirst(type, sql, newParam, transaction, commandTimeout, commandType);
+            return cnn.QueryFirst(type, newSql, newParam, transaction, commandTimeout, commandType);
         }
 
         /// <summary>
@@ -396,7 +390,7 @@ namespace Jiifureit.Dapper.OutsideSql
         /// </summary>
         /// <param name="cnn">The connection to query on.</param>
         /// <param name="type">The type to return.</param>
-        /// <param name="filepath">The SQL file to execute for this query.</param>
+        /// <param name="sql">The SQL to execute for the query.</param>
         /// <param name="param">The parameters to pass, if any.</param>
         /// <param name="transaction">The transaction to use, if any.</param>
         /// <param name="commandTimeout">The command timeout (in seconds).</param>
@@ -407,14 +401,14 @@ namespace Jiifureit.Dapper.OutsideSql
         ///     column in assumed, otherwise an instance is
         ///     created per row, and a direct column-name===member-name mapping is assumed (case insensitive).
         /// </returns>
-        public static object QueryFirstOrDefaultOutsideSql(this IDbConnection cnn, Type type, string filepath,
+        public static object QueryFirstOrDefaultLog(this IDbConnection cnn, Type type, string sql,
             object param = null, IDbTransaction transaction = null,
             int? commandTimeout = null, CommandType? commandType = null)
         {
             var bindType = DataProviderUtil.GetBindVariableType(cnn);
-            var sql = _ParseFile(filepath, param, bindType);
+            var newSql = _LogSql(sql, param, bindType);
             var newParam = DynamicParameterUtil.CreateDynamicParameters(param);
-            return cnn.QueryFirstOrDefault(type, sql, newParam, transaction, commandTimeout, commandType);
+            return cnn.QueryFirstOrDefault(type, newSql, newParam, transaction, commandTimeout, commandType);
         }
 
         /// <summary>
@@ -422,7 +416,7 @@ namespace Jiifureit.Dapper.OutsideSql
         /// </summary>
         /// <param name="cnn">The connection to query on.</param>
         /// <param name="type">The type to return.</param>
-        /// <param name="filepath">The SQL file to execute for this query.</param>
+        /// <param name="sql">The SQL to execute for the query.</param>
         /// <param name="param">The parameters to pass, if any.</param>
         /// <param name="transaction">The transaction to use, if any.</param>
         /// <param name="commandTimeout">The command timeout (in seconds).</param>
@@ -433,14 +427,14 @@ namespace Jiifureit.Dapper.OutsideSql
         ///     column in assumed, otherwise an instance is
         ///     created per row, and a direct column-name===member-name mapping is assumed (case insensitive).
         /// </returns>
-        public static object QuerySingleOutsideSql(this IDbConnection cnn, Type type, string filepath,
+        public static object QuerySingleLog(this IDbConnection cnn, Type type, string sql,
             object param = null, IDbTransaction transaction = null,
             int? commandTimeout = null, CommandType? commandType = null)
         {
             var bindType = DataProviderUtil.GetBindVariableType(cnn);
-            var sql = _ParseFile(filepath, param, bindType);
+            var newSql = _LogSql(sql, param, bindType);
             var newParam = DynamicParameterUtil.CreateDynamicParameters(param);
-            return cnn.QuerySingle(type, sql, newParam, transaction, commandTimeout, commandType);
+            return cnn.QuerySingle(type, newSql, newParam, transaction, commandTimeout, commandType);
         }
 
         /// <summary>
@@ -448,7 +442,7 @@ namespace Jiifureit.Dapper.OutsideSql
         /// </summary>
         /// <param name="cnn">The connection to query on.</param>
         /// <param name="type">The type to return.</param>
-        /// <param name="filepath">The SQL file to execute for this query.</param>
+        /// <param name="sql">The SQL to execute for the query.</param>
         /// <param name="param">The parameters to pass, if any.</param>
         /// <param name="transaction">The transaction to use, if any.</param>
         /// <param name="commandTimeout">The command timeout (in seconds).</param>
@@ -459,69 +453,50 @@ namespace Jiifureit.Dapper.OutsideSql
         ///     column in assumed, otherwise an instance is
         ///     created per row, and a direct column-name===member-name mapping is assumed (case insensitive).
         /// </returns>
-        public static object QuerySingleOrDefaultOutsideSql(this IDbConnection cnn, Type type, string filepath,
+        public static object QuerySingleOrDefaultLog(this IDbConnection cnn, Type type, string sql,
             object param = null, IDbTransaction transaction = null,
             int? commandTimeout = null, CommandType? commandType = null)
         {
             var bindType = DataProviderUtil.GetBindVariableType(cnn);
-            var sql = _ParseFile(filepath, param, bindType);
+            var newSql = _LogSql(sql, param, bindType);
             var newParam = DynamicParameterUtil.CreateDynamicParameters(param);
-            return cnn.QuerySingleOrDefault(type, sql, newParam, transaction, commandTimeout, commandType);
+            return cnn.QuerySingleOrDefault(type, newSql, newParam, transaction, commandTimeout, commandType);
         }
 
         /// <summary>
         ///     Execute a command that returns multiple result sets, and access each in turn.
         /// </summary>
         /// <param name="cnn">The connection to query on.</param>
-        /// <param name="filepath">The SQL file to execute for this query.</param>
+        /// <param name="sql">The SQL to execute for the query.</param>
         /// <param name="param">The parameters to use for this query.</param>
         /// <param name="transaction">The transaction to use for this query.</param>
         /// <param name="commandTimeout">Number of seconds before command execution timeout.</param>
         /// <param name="commandType">Is it a stored proc or a batch?</param>
-        public static SqlMapper.GridReader QueryMultipleOutsideSql(this IDbConnection cnn, string filepath,
+        public static SqlMapper.GridReader QueryMultipleLog(this IDbConnection cnn, string sql,
             object param = null, IDbTransaction transaction = null,
             int? commandTimeout = null, CommandType? commandType = null)
         {
             var bindType = DataProviderUtil.GetBindVariableType(cnn);
-            var sql = _ParseFile(filepath, param, bindType);
+            var newSql = _LogSql(sql, param, bindType);
             var newParam = DynamicParameterUtil.CreateDynamicParameters(param);
-            return cnn.QueryMultiple(sql, newParam, transaction, commandTimeout, commandType);
+            return cnn.QueryMultiple(newSql, newParam, transaction, commandTimeout, commandType);
         }
 
         /// <summary>
-        ///     Read sql file.
+        ///     write sql to log file.
         /// </summary>
-        /// <param name="filepath">The SQL file to execute for this query.</param>
+        /// <param name="sql">The SQL to execute for the query.</param>
         /// <param name="param">The parameters to use for this query.</param>
-        /// <param name="type">Bind Viarables type.</param>
-        /// <returns>sql</returns>
-        private static string _ParseFile(string filepath, object param,
-            BindVariableType type = BindVariableType.Question)
+        /// <param name="bindVariableType"></param>
+        private static string _LogSql(string sql, object param, BindVariableType bindVariableType)
         {
-            if (!File.Exists(filepath))
-                throw new SqlFileNotFoundRuntimeException(filepath);
-
-            string sql;
-
-            // Read file.
-            var fileInfo = new FileInfo(filepath);
-            using (var fileReader = new FileReader(fileInfo))
-            {
-                var charcode = fileReader.Read(fileInfo);
-
-                using (TextReader reader = new StreamReader(filepath, charcode.GetEncoding()))
-                {
-                    sql = reader.ReadToEnd();
-                }
-            }
-
             // parse file content.
             var parser = new Parser(sql);
             var rootNode = parser.Parse();
 
             ICommandContext ctx = new CommandContextImpl(BindVariableType.Question)
             {
-                BindVariableType = type
+                BindVariableType = bindVariableType
             };
 
             if (param != null)
