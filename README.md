@@ -6,7 +6,8 @@ Dapper non-public extension for outside sql file.
 ## Overview
 
 **Dapper.OutsideSql** reads sql statement from text file, formats and passes it to Dapper according to the parameters.  
-See format examples below.
+See format examples below. 
+**DapperLog** is another version **Dapper.OutsideSql**, that don't read text file.
 
 
 ## Description
@@ -85,7 +86,7 @@ Example:
 In the case of the above, the WHERE phrase is not output when job, deptno is null. 
 
 
-## Examples 1
+## Example 1
 Text File:
 ```sql
 select mb.MEMBER_ID
@@ -115,7 +116,7 @@ var path = "<text file path>";
 var memberList = conn.QueryOutputSql<Hoge>(path, new { memberId = 1, memberName = "hoge%" });
 ``` 
 
-## Examples 2
+## Example 2
 C#:
 ```csharp
 var path = "<text file path>";
@@ -127,13 +128,17 @@ memberList = conn.QueryOutsideSql<Hoge>(path, param);
 
 ## NLog
 Dapper.OutsideSql outputs sql which included parameters are replaced to real values, to NLog, after reading file.
-DapperLog also outputs sql to NLog. But, DapperLog don't read sql file.
+DapperLog also outputs sql to NLog. But, DapperLog don't read sql file. 
+To use DapperLog, we can use QueryLog<T>, QueryFirstOrDefaultLog<T>, ExecuteLog, etc.
 
-## Example 3
+
+### Example 3
+C#:
 ```csharp
 var sql = "select EMP.EMPNO EmpNo,EMP.ENAME Enam from EMP where EMPNO >= /*Empno1*/500 and EMPNO <= /*Empno2*/1000";
 var memberList = conn.QueryLog<Hoge>(sql, new { Empno1 = 7900, Empno2 = 7940 });
 ``` 
+Log:
 ```log
  DEBUG Jiifureit.Dapper.OutsideSql.DapperLogExtension._LogSql select EMP.EMPNO EmpNo,EMP.ENAME Enam from EMP where EMPNO >= 7900 and EMPNO <= 7940
 ``` 
