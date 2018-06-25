@@ -125,6 +125,18 @@ param.Add("memberName", "hoge%");
 memberList = conn.QueryOutsideSql<Hoge>(path, param);
 ``` 
 
+## NLog
+Dapper.OutsideSql outputs sql which included parameters are replaced to real values, to NLog, after reading file.
+DapperLog also outputs sql to NLog. But, DapperLog don't read sql file.
+
+## Example 3
+```csharp
+var sql = "select EMP.EMPNO EmpNo,EMP.ENAME Enam from EMP where EMPNO >= /*Empno1*/500 and EMPNO <= /*Empno2*/1000";
+var memberList = conn.QueryLog<Hoge>(sql, new { Empno1 = 7900, Empno2 = 7940 });
+``` 
+```log
+ DEBUG Jiifureit.Dapper.OutsideSql.DapperLogExtension._LogSql select EMP.EMPNO EmpNo,EMP.ENAME Enam from EMP where EMPNO >= 7900 and EMPNO <= 7940
+``` 
 
 ## DB Providers 
 - SQL Server
