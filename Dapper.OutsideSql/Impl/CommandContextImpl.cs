@@ -160,6 +160,8 @@ namespace Jiifureit.Dapper.OutsideSql.Impl
                 if (o is decimal || o is byte || o is double || o is float || o is int || o is long || o is short ||
                     o is sbyte || o is uint || o is ulong || o is ushort)
                     return Convert.ToString(o);
+                else if (o == null)
+                    return "null";
                 else
                     return "'" + Convert.ToString(o) + "'";
             }
