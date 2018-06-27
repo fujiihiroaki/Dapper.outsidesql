@@ -513,7 +513,10 @@ namespace Jiifureit.Dapper.OutsideSql
                             {
                                 var name = names.Current;
                                 var p = lookup[name];
-                                ctx.AddArg(name, p, p.GetType());
+                                if (p != null)
+                                    ctx.AddArg(name, p, p.GetType());
+                                else
+                                    ctx.AddArg(name, null, null);
                             }
                         }
                     }
@@ -522,14 +525,24 @@ namespace Jiifureit.Dapper.OutsideSql
                         var proprties = param.GetType().GetProperties();
                         proprties.AsList().ForEach(p =>
                         {
-                            ctx.AddArg(p.Name, p.GetValue(param), p.GetValue(param).GetType());
+                            var v = p.GetValue(param);
+                            if (v != null)
+                                ctx.AddArg(p.Name, p.GetValue(param), p.GetValue(param).GetType());
+                            else
+                                ctx.AddArg(p.Name, null, null);
                         });
                     }
                 }
                 else
                 {
                     foreach (var keyValue in dictionary)
-                        ctx.AddArg(keyValue.Key, keyValue.Value, keyValue.Value.GetType());
+                    {
+                        var v = keyValue.Value;
+                        if (v != null) 
+                            ctx.AddArg(keyValue.Key, keyValue.Value, keyValue.Value.GetType());
+                        else
+                            ctx.AddArg(keyValue.Key, null, null);
+                    }
                 }
             }
 
