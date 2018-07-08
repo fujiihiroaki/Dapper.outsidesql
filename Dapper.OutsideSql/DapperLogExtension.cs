@@ -27,7 +27,8 @@ using Dapper;
 using Jiifureit.Dapper.OutsideSql.Impl;
 using Jiifureit.Dapper.OutsideSql.SqlParser;
 using Jiifureit.Dapper.OutsideSql.Utility;
-using NLog;
+using Microsoft.Extensions.Logging;
+using Logger = Jiifureit.Dapper.OutsideSql.Log.Logger;
 
 #endregion
 
@@ -38,7 +39,7 @@ namespace Jiifureit.Dapper.OutsideSql
     /// </summary>
     public static class DapperLogExtension
     {
-        private static readonly Logger logger = LogManager.GetCurrentClassLogger();
+        private static readonly ILogger logger = Logger.Create();
 
         /// <summary>
         ///     Execute parameterized SQL.
@@ -549,7 +550,7 @@ namespace Jiifureit.Dapper.OutsideSql
             rootNode.Accept(ctx);
 
             // log sql.
-            logger.Debug(ctx.SqlWithValue);
+            logger?.LogDebug(ctx.SqlWithValue);
 
             return ctx.Sql;
         }

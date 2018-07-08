@@ -20,7 +20,8 @@
 
 #region using
 
-using NLog;
+using Microsoft.Extensions.Logging;
+using Logger = Jiifureit.Dapper.OutsideSql.Log.Logger;
 
 #endregion
 
@@ -28,7 +29,7 @@ namespace Jiifureit.Dapper.OutsideSql.Nodes
 {
     public class EmbeddedValueNode : AbstractNode
     {
-        private static readonly Logger logger = LogManager.GetCurrentClassLogger();
+        private static readonly ILogger logger = Logger.Create();
 
         public EmbeddedValueNode(string expression)
         {
@@ -43,7 +44,7 @@ namespace Jiifureit.Dapper.OutsideSql.Nodes
             if (value != null)
                 ctx.AddSql(value.ToString());
             else
-                logger.Log(LogLevel.Error, new object[] {Expression});
+                logger?.Log(LogLevel.Error, Expression);
         }
     }
 }

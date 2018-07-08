@@ -25,9 +25,13 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using Jiifureit.Dapper.OutsideSql;
+using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NLog;
+using NLog.Extensions.Logging;
 using Oracle.ManagedDataAccess.Client;
+using Logger = Jiifureit.Dapper.OutsideSql.Log.Logger;
+using LogLevel = Microsoft.Extensions.Logging.LogLevel;
 
 #endregion
 
@@ -39,8 +43,28 @@ namespace Dapper.OutsideSql.Test
         private const string CONNECTION_STRING = "Data Source=localhost:1521/pdb1;User Id=s2dotnetdemo;Password=s2dotnetdemo";
         private const string FILE_LOCATION = @"C:\projects\Dapper.outsidesql\Dapper.OutsideSql.Test";
 
-        private readonly Logger _logger
-            = LogManager.LoadConfiguration(FILE_LOCATION + @"\App1.config").GetCurrentClassLogger();
+//        private readonly Logger _logger
+//            = LogManager.LoadConfiguration(FILE_LOCATION + @"\App1.config").GetCurrentClassLogger();
+        private Microsoft.Extensions.Logging.ILogger _logger;
+
+        [TestInitialize]
+        public void TestSetup()
+        {
+            var path = $"{FILE_LOCATION}\\App1.config";
+
+            Logger.Category = "Dapper.OutsideSql.Test.OracleTest";
+            Logger.Factory.AddNLog();
+            LogManager.LoadConfiguration(path);
+
+            _logger = Logger.Create();
+            _logger.Log(LogLevel.Information, "--- Setup ---");
+        }
+
+        [TestCleanup]
+        public void TestEnd()
+        {
+            LogManager.Shutdown();
+        }
 
         [TestMethod]
         public void TestSelect1()
@@ -49,7 +73,7 @@ namespace Dapper.OutsideSql.Test
             using (var conn = new OracleConnection(CONNECTION_STRING))
             {
                 conn.Open();
-                _logger.Debug("--- Start ---");
+                _logger.LogDebug("--- Start ---");
                 var list = conn.QueryOutsideSql<Test1>(filePath, new {sarary = 1500});
                 Assert.AreEqual(7, list.AsList().Count, "Test Count1");
 
@@ -68,7 +92,7 @@ namespace Dapper.OutsideSql.Test
                 Assert.AreEqual(14, enumerable.AsList().Count, "Test Count3");
             }
 
-            _logger.Debug("--- END ---");
+            _logger.LogDebug("--- END ---");
         }
 
         [TestMethod]
@@ -78,7 +102,7 @@ namespace Dapper.OutsideSql.Test
             using (var conn = new OracleConnection(CONNECTION_STRING))
             {
                 conn.Open();
-                _logger.Debug("--- Start ---");
+                _logger.LogDebug("--- Start ---");
 
                 var list = conn.QueryOutsideSql<Test1>(filePath, new {sarary = 1500});
                 Assert.AreEqual(7, list.AsList().Count, "Test Count21");
@@ -105,7 +129,7 @@ namespace Dapper.OutsideSql.Test
                 Assert.AreEqual(2, list.AsList().Count, "Test Count25");
             }
 
-            _logger.Debug("--- END ---");
+            _logger.LogDebug("--- END ---");
         }
 
         [TestMethod]
@@ -115,7 +139,7 @@ namespace Dapper.OutsideSql.Test
             using (var conn = new OracleConnection(CONNECTION_STRING))
             {
                 conn.Open();
-                _logger.Debug("--- Start ---");
+                _logger.LogDebug("--- Start ---");
 
                 IDbTransaction tran = conn.BeginTransaction();
 
@@ -126,7 +150,7 @@ namespace Dapper.OutsideSql.Test
                 tran.Commit();
             }
 
-            _logger.Debug("--- END ---");
+            _logger.LogDebug("--- END ---");
         }
 
         [TestMethod]
@@ -136,7 +160,7 @@ namespace Dapper.OutsideSql.Test
             using (var conn = new OracleConnection(CONNECTION_STRING))
             {
                 conn.Open();
-                _logger.Debug("--- Start ---");
+                _logger.LogDebug("--- Start ---");
 
                 IDbTransaction tran = conn.BeginTransaction();
 
@@ -147,7 +171,7 @@ namespace Dapper.OutsideSql.Test
                 tran.Commit();
             }
 
-            _logger.Debug("--- END ---");
+            _logger.LogDebug("--- END ---");
         }
 
         [TestMethod]
@@ -157,7 +181,7 @@ namespace Dapper.OutsideSql.Test
             using (var conn = new OracleConnection(CONNECTION_STRING))
             {
                 conn.Open();
-                _logger.Debug("--- Start ---");
+                _logger.LogDebug("--- Start ---");
 
                 IDbTransaction tran = conn.BeginTransaction();
                 var ret = conn.ExecuteOutsideSql(filePath, new {no = 50}, tran);
@@ -166,7 +190,7 @@ namespace Dapper.OutsideSql.Test
                 tran.Commit();
             }
 
-            _logger.Debug("--- END ---");
+            _logger.LogDebug("--- END ---");
         }
     }
 }
