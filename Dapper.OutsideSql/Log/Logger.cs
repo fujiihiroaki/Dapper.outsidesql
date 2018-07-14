@@ -39,7 +39,7 @@ namespace Jiifureit.Dapper.OutsideSql.Log
         /// <summary>
         /// Log Factory. 
         /// </summary>
-        public static ILoggerFactory Factory => new LoggerFactory();
+        public static ILoggerFactory Factory { get; } = new LoggerFactory();
 
         /// <summary>
         /// Create logger based on category.

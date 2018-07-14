@@ -43,9 +43,8 @@ namespace Dapper.OutsideSql.Test
         private const string CONNECTION_STRING = "Data Source=localhost:1521/pdb1;User Id=s2dotnetdemo;Password=s2dotnetdemo";
         private const string FILE_LOCATION = @"C:\projects\Dapper.outsidesql\Dapper.OutsideSql.Test";
 
-//        private readonly Logger _logger
-//            = LogManager.LoadConfiguration(FILE_LOCATION + @"\App1.config").GetCurrentClassLogger();
         private Microsoft.Extensions.Logging.ILogger _logger;
+        private ILogger<OracleTest> _logger2;
 
         [TestInitialize]
         public void TestSetup()
@@ -53,11 +52,14 @@ namespace Dapper.OutsideSql.Test
             var path = $"{FILE_LOCATION}\\App1.config";
 
             Logger.Category = "Dapper.OutsideSql.Test.OracleTest";
-            Logger.Factory.AddNLog();
+            Logger.Factory.AddNLog().AddConsole();
             LogManager.LoadConfiguration(path);
 
             _logger = Logger.Create();
             _logger.Log(LogLevel.Information, "--- Setup ---");
+
+            _logger2 = Logger.CreateLogger<OracleTest>();
+            _logger2.Log(LogLevel.Information, "--- Setup2 ---");
         }
 
         [TestCleanup]
@@ -102,7 +104,7 @@ namespace Dapper.OutsideSql.Test
             using (var conn = new OracleConnection(CONNECTION_STRING))
             {
                 conn.Open();
-                _logger.LogDebug("--- Start ---");
+                _logger2.LogDebug("--- Start ---");
 
                 var list = conn.QueryOutsideSql<Test1>(filePath, new {sarary = 1500});
                 Assert.AreEqual(7, list.AsList().Count, "Test Count21");
@@ -129,7 +131,7 @@ namespace Dapper.OutsideSql.Test
                 Assert.AreEqual(2, list.AsList().Count, "Test Count25");
             }
 
-            _logger.LogDebug("--- END ---");
+            _logger2.LogDebug("--- END ---");
         }
 
         [TestMethod]

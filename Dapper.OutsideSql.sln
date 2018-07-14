@@ -5,7 +5,13 @@ VisualStudioVersion = 15.0.27428.2027
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Dapper.OutsideSql", "Dapper.OutsideSql\Dapper.OutsideSql.csproj", "{973BD580-5BFF-45EA-A1E4-D0AE0EDBCB80}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dapper.OutsideSql.Test", "Dapper.OutsideSql.Test\Dapper.OutsideSql.Test.csproj", "{86023495-A739-4D5C-9A3A-9044399DEA19}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Dapper.OutsideSql.Test", "Dapper.OutsideSql.Test\Dapper.OutsideSql.Test.csproj", "{86023495-A739-4D5C-9A3A-9044399DEA19}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{A95B5A6E-9B64-487D-AA3F-D53AFB8D7B31}"
+	ProjectSection(SolutionItems) = preProject
+		LICENSE = LICENSE
+		README.md = README.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -126,15 +126,24 @@ param.Add("memberName", "hoge%");
 memberList = conn.QueryOutsideSql<Hoge>(path, param);
 ``` 
 
-## NLog
-Dapper.OutsideSql outputs sql which included parameters are replaced to real values, to NLog, after reading file.
-DapperLog also outputs sql to NLog. But, DapperLog don't read sql file. 
+## Log
+Dapper.OutsideSql outputs sql which included parameters are replaced to real values, to Log, after reading file.
+DapperLog also outputs sql to Microsoft.Extensions.Logging. But, DapperLog don't read sql file. 
 To use DapperLog, we can use QueryLog<T>, QueryFirstOrDefaultLog<T>, ExecuteLog, etc.
+
+When Use NLog, Serilog, etc, you can use Log framwork's extension Library, for example Nlog.Extensions.Logging.  
 
 
 ### Example 3
 C#:
 ```csharp
+var path = "<nlog.config path>";
+Jiifureit.Dapper.OutsideSql.Log.Logger.Factory
+    .AddNLog()
+    .AddConsole();
+NLog.LogManager.LoadConfiguration(path);
+var logger = Jiifureit.Dapper.OutsideSql.Log.Logger.CreateLogger<HogeTest>();
+
 var sql = "select EMP.EMPNO EmpNo,EMP.ENAME Enam from EMP where EMPNO >= /*Empno1*/500 and EMPNO <= /*Empno2*/1000";
 var memberList = conn.QueryLog<Hoge>(sql, new { Empno1 = 7900, Empno2 = 7940 });
 ``` 
