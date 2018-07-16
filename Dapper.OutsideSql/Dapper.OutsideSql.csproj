@@ -7,7 +7,7 @@
     <Product>Jiifureit.Dapper.OutsideSql</Product>
     <PackageId>Jiifureit.Dapper.OutsideSql</PackageId>
     <Copyright>2018 Hiroaki Fujii</Copyright>
-    <Version>0.5.0</Version>
+    <Version>0.5.1</Version>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageProjectUrl>https://github.com/fujiihiroaki/Dapper.outsidesql</PackageProjectUrl>
     <RepositoryUrl>https://github.com/fujiihiroaki/Dapper.outsidesql</RepositoryUrl>
@@ -16,10 +16,11 @@
     <PackageLicenseUrl>http://www.apache.org/licenses/LICENSE-2.0</PackageLicenseUrl>
     <SignAssembly>false</SignAssembly>
     <Description>Dapper extension adding outside sql function reading text file.</Description>
-    <PackageReleaseNotes>0,5,0             release,
-                    add class method that returns ILogger&lt;T&gt;. 
+    <PackageReleaseNotes>0.5.1             bugfix . initializing error when Logger,Category is null.
+0.5.0             release,
+                     add class method that returns ILogger&lt;T&gt;. 
 0.5.0-beta01 changes logging framework  to Microsoft.Extensions.Logging. now, nlog is optional. 
-0.4.0             first release.
+0.4.0              first release.
 0.4.0-beta04 bugfix.
                      update output to log when arugement parameter is null.
 0.4.0-beta03 adds function writng sql to log, replacing parameters to values by using NLog. 
