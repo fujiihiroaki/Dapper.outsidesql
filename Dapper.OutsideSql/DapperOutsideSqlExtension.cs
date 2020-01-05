@@ -24,6 +24,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.IO;
+using System.Text;
 using Dapper;
 using Hnx8.ReadJEnc;
 using Jiifureit.Dapper.OutsideSql.Exception;
@@ -64,6 +65,17 @@ namespace Jiifureit.Dapper.OutsideSql
             return cnn.Execute(sql, newParam, transaction, commandTimeout, commandType);
         }
 
+        public static int ExecuteOutsideSql(this IDbConnection cnn, Stream sqlstream, Encoding encoding = null, object param = null,
+            IDbTransaction transaction = null,
+            int? commandTimeout = null, CommandType? commandType = null)
+        {
+            if (encoding == null) encoding = Encoding.UTF8;
+            var bindType = DataProviderUtil.GetBindVariableType(cnn);
+            var sql = _ParseStream(sqlstream, encoding, param, bindType);
+            var newParam = DynamicParameterUtil.CreateDynamicParameters(param);
+            return cnn.Execute(sql, newParam, transaction, commandTimeout, commandType);
+        }
+
         /// <summary>
         ///     Execute parameterized SQL that selects a single value.
         /// </summary>
@@ -80,6 +92,17 @@ namespace Jiifureit.Dapper.OutsideSql
         {
             var bindType = DataProviderUtil.GetBindVariableType(cnn);
             var sql = _ParseFile(filepath, param, bindType);
+            var newParam = DynamicParameterUtil.CreateDynamicParameters(param);
+            return cnn.ExecuteScalar(sql, newParam, transaction, commandTimeout, commandType);
+        }
+
+        public static object ExecuteScalarOutsideSql(this IDbConnection cnn, Stream sqlstream, Encoding encoding = null, object param = null,
+            IDbTransaction transaction = null,
+            int? commandTimeout = null, CommandType? commandType = null)
+        {
+            if (encoding == null) encoding = Encoding.UTF8;
+            var bindType = DataProviderUtil.GetBindVariableType(cnn);
+            var sql = _ParseStream(sqlstream, encoding, param, bindType);
             var newParam = DynamicParameterUtil.CreateDynamicParameters(param);
             return cnn.ExecuteScalar(sql, newParam, transaction, commandTimeout, commandType);
         }
@@ -105,6 +128,17 @@ namespace Jiifureit.Dapper.OutsideSql
             return cnn.ExecuteScalar<T>(sql, newParam, transaction, commandTimeout, commandType);
         }
 
+        public static T ExecuteScalarOutsideSql<T>(this IDbConnection cnn, Stream sqlstream, Encoding encoding = null, object param = null,
+            IDbTransaction transaction = null,
+            int? commandTimeout = null, CommandType? commandType = null)
+        {
+            if (encoding == null) encoding = Encoding.UTF8;
+            var bindType = DataProviderUtil.GetBindVariableType(cnn);
+            var sql = _ParseStream(sqlstream, encoding, param, bindType);
+            var newParam = DynamicParameterUtil.CreateDynamicParameters(param);
+            return cnn.ExecuteScalar<T>(sql, newParam, transaction, commandTimeout, commandType);
+        }
+
 
         /// <summary>
         ///     Execute parameterized SQL and return an <see cref="IDataReader" />.
@@ -121,6 +155,17 @@ namespace Jiifureit.Dapper.OutsideSql
         {
             var bindType = DataProviderUtil.GetBindVariableType(cnn);
             var sql = _ParseFile(filepath, param, bindType);
+            var newParam = DynamicParameterUtil.CreateDynamicParameters(param);
+            return cnn.ExecuteReader(sql, newParam, transaction, commandTimeout, commandType);
+        }
+
+        public static IDataReader ExecuteReaderOutsideSql(this IDbConnection cnn, Stream sqlstream, Encoding encoding = null, object param = null,
+            IDbTransaction transaction = null,
+            int? commandTimeout = null, CommandType? commandType = null)
+        {
+            if (encoding == null) encoding = Encoding.UTF8;
+            var bindType = DataProviderUtil.GetBindVariableType(cnn);
+            var sql = _ParseStream(sqlstream, encoding, param, bindType);
             var newParam = DynamicParameterUtil.CreateDynamicParameters(param);
             return cnn.ExecuteReader(sql, newParam, transaction, commandTimeout, commandType);
         }
@@ -143,6 +188,14 @@ namespace Jiifureit.Dapper.OutsideSql
             return QueryOutsideSql<dynamic>(cnn, filepath, param, transaction, buffered, commandTimeout, commandType);
         }
 
+        public static IEnumerable<dynamic> QueryOutsideSql(this IDbConnection cnn, Stream sqlstream, Encoding encoding = null, object param = null,
+            IDbTransaction transaction = null,
+            bool buffered = true, int? commandTimeout = null, CommandType? commandType = null)
+        {
+            if (encoding == null) encoding = Encoding.UTF8;
+            return QueryOutsideSql<dynamic>(cnn, sqlstream, encoding, param, transaction, buffered, commandTimeout, commandType);
+        }
+
         /// <summary>
         ///     Return a dynamic object with properties matching the columns.
         /// </summary>
@@ -158,6 +211,14 @@ namespace Jiifureit.Dapper.OutsideSql
             int? commandTimeout = null, CommandType? commandType = null)
         {
             return QueryFirstOutsideSql<dynamic>(cnn, filepath, param, transaction, commandTimeout, commandType);
+        }
+
+        public static dynamic QueryFirstOutsideSql(this IDbConnection cnn, Stream sqlstream, Encoding encoding = null, object param = null,
+            IDbTransaction transaction = null,
+            int? commandTimeout = null, CommandType? commandType = null)
+        {
+            if (encoding == null) encoding = Encoding.UTF8;
+            return QueryFirstOutsideSql<dynamic>(cnn, sqlstream, encoding, param, transaction, commandTimeout, commandType);
         }
 
         /// <summary>
@@ -178,6 +239,15 @@ namespace Jiifureit.Dapper.OutsideSql
                 commandType);
         }
 
+        public static dynamic QueryFirstOrDefaultOutsideSql(this IDbConnection cnn, Stream sqlstream, Encoding encoding = null,
+            object param = null, IDbTransaction transaction = null,
+            int? commandTimeout = null, CommandType? commandType = null)
+        {
+            if (encoding == null) encoding = Encoding.UTF8;
+            return QueryFirstOrDefaultOutsideSql<dynamic>(cnn, sqlstream, encoding, param, transaction, commandTimeout,
+                commandType);
+        }
+
         /// <summary>
         ///     Return a dynamic object with properties matching the columns.
         /// </summary>
@@ -195,6 +265,14 @@ namespace Jiifureit.Dapper.OutsideSql
             return QuerySingleOutsideSql<dynamic>(cnn, filepath, param, transaction, commandTimeout, commandType);
         }
 
+        public static dynamic QuerySingleOutsideSql(this IDbConnection cnn, Stream sqlstream, Encoding encoding = null, object param = null,
+            IDbTransaction transaction = null,
+            int? commandTimeout = null, CommandType? commandType = null)
+        {
+            if (encoding == null) encoding = Encoding.UTF8;
+            return QuerySingleOutsideSql<dynamic>(cnn, sqlstream, encoding, param, transaction, commandTimeout, commandType);
+        }
+
         /// <summary>
         ///     Return a dynamic object with properties matching the columns.
         /// </summary>
@@ -210,6 +288,15 @@ namespace Jiifureit.Dapper.OutsideSql
             int? commandTimeout = null, CommandType? commandType = null)
         {
             return QuerySingleOrDefaultOutsideSql<dynamic>(cnn, filepath, param, transaction, commandTimeout,
+                commandType);
+        }
+
+        public static dynamic QuerySingleOrDefaultOutsideSql(this IDbConnection cnn, Stream sqlstream, Encoding encoding = null,
+            object param = null, IDbTransaction transaction = null,
+            int? commandTimeout = null, CommandType? commandType = null)
+        {
+            if (encoding == null) encoding = Encoding.UTF8;
+            return QuerySingleOrDefaultOutsideSql<dynamic>(cnn, sqlstream, encoding, param, transaction, commandTimeout,
                 commandType);
         }
 
@@ -239,6 +326,17 @@ namespace Jiifureit.Dapper.OutsideSql
             return cnn.Query<T>(sql, newParam, transaction, buffered, commandTimeout, commandType);
         }
 
+        public static IEnumerable<T> QueryOutsideSql<T>(this IDbConnection cnn, Stream sqlstream, Encoding encoding = null, object param = null,
+            IDbTransaction transaction = null,
+            bool buffered = true, int? commandTimeout = null, CommandType? commandType = null)
+        {
+            if (encoding == null) encoding = Encoding.UTF8;
+            var bindType = DataProviderUtil.GetBindVariableType(cnn);
+            var sql = _ParseStream(sqlstream, encoding, param, bindType);
+            var newParam = DynamicParameterUtil.CreateDynamicParameters(param);
+            return cnn.Query<T>(sql, newParam, transaction, buffered, commandTimeout, commandType);
+        }
+
         /// <summary>
         ///     Executes a single-row query, returning the data typed as <typeparamref name="T" />.
         /// </summary>
@@ -260,6 +358,17 @@ namespace Jiifureit.Dapper.OutsideSql
         {
             var type = DataProviderUtil.GetBindVariableType(cnn);
             var sql = _ParseFile(filepath, param, type);
+            var newParam = DynamicParameterUtil.CreateDynamicParameters(param);
+            return cnn.QueryFirst<T>(sql, newParam, transaction, commandTimeout, commandType);
+        }
+
+        public static T QueryFirstOutsideSql<T>(this IDbConnection cnn, Stream sqlstream, Encoding encoding = null, object param = null,
+            IDbTransaction transaction = null,
+            int? commandTimeout = null, CommandType? commandType = null)
+        {
+            if (encoding == null) encoding = Encoding.UTF8;
+            var type = DataProviderUtil.GetBindVariableType(cnn);
+            var sql = _ParseStream(sqlstream, encoding, param, type);
             var newParam = DynamicParameterUtil.CreateDynamicParameters(param);
             return cnn.QueryFirst<T>(sql, newParam, transaction, commandTimeout, commandType);
         }
@@ -289,6 +398,17 @@ namespace Jiifureit.Dapper.OutsideSql
             return cnn.QueryFirstOrDefault<T>(sql, newParam, transaction, commandTimeout, commandType);
         }
 
+        public static T QueryFirstOrDefaultOutsideSql<T>(this IDbConnection cnn, Stream sqlstream, Encoding encoding = null, object param = null,
+            IDbTransaction transaction = null,
+            int? commandTimeout = null, CommandType? commandType = null)
+        {
+            if (encoding == null) encoding = Encoding.UTF8;
+            var bindType = DataProviderUtil.GetBindVariableType(cnn);
+            var sql = _ParseStream(sqlstream, encoding, param, bindType);
+            var newParam = DynamicParameterUtil.CreateDynamicParameters(param);
+            return cnn.QueryFirstOrDefault<T>(sql, newParam, transaction, commandTimeout, commandType);
+        }
+
         /// <summary>
         ///     Executes a single-row query, returning the data typed as <typeparamref name="T" />.
         /// </summary>
@@ -314,6 +434,17 @@ namespace Jiifureit.Dapper.OutsideSql
             return cnn.QuerySingle<T>(sql, newParam, transaction, commandTimeout, commandType);
         }
 
+        public static T QuerySingleOutsideSql<T>(this IDbConnection cnn, Stream sqlstream, Encoding encoding = null, object param = null,
+            IDbTransaction transaction = null,
+            int? commandTimeout = null, CommandType? commandType = null)
+        {
+            if (encoding == null) encoding = Encoding.UTF8;
+            var bindType = DataProviderUtil.GetBindVariableType(cnn);
+            var sql = _ParseStream(sqlstream, encoding, param, bindType);
+            var newParam = DynamicParameterUtil.CreateDynamicParameters(param);
+            return cnn.QuerySingle<T>(sql, newParam, transaction, commandTimeout, commandType);
+        }
+
         /// <summary>
         ///     Executes a single-row query, returning the data typed as <typeparamref name="T" />.
         /// </summary>
@@ -335,6 +466,17 @@ namespace Jiifureit.Dapper.OutsideSql
         {
             var bindType = DataProviderUtil.GetBindVariableType(cnn);
             var sql = _ParseFile(filepath, param, bindType);
+            var newParam = DynamicParameterUtil.CreateDynamicParameters(param);
+            return cnn.QuerySingleOrDefault<T>(sql, newParam, transaction, commandTimeout, commandType);
+        }
+
+        public static T QuerySingleOrDefaultOutsideSql<T>(this IDbConnection cnn, Stream sqlstream, Encoding encoding = null, object param = null,
+            IDbTransaction transaction = null,
+            int? commandTimeout = null, CommandType? commandType = null)
+        {
+            if (encoding == null) encoding = Encoding.UTF8;
+            var bindType = DataProviderUtil.GetBindVariableType(cnn);
+            var sql = _ParseStream(sqlstream, encoding, param, bindType);
             var newParam = DynamicParameterUtil.CreateDynamicParameters(param);
             return cnn.QuerySingleOrDefault<T>(sql, newParam, transaction, commandTimeout, commandType);
         }
@@ -366,6 +508,17 @@ namespace Jiifureit.Dapper.OutsideSql
             return cnn.Query(type, sql, newParam, transaction, buffered, commandTimeout, commandType);
         }
 
+        public static IEnumerable<object> QueryOutsideSql(this IDbConnection cnn, Type type, Stream sqlstream, Encoding encoding = null,
+            object param = null, IDbTransaction transaction = null,
+            bool buffered = true, int? commandTimeout = null, CommandType? commandType = null)
+        {
+            if (encoding == null) encoding = Encoding.UTF8;
+            var bindType = DataProviderUtil.GetBindVariableType(cnn);
+            var sql = _ParseStream(sqlstream, encoding, param, bindType);
+            var newParam = DynamicParameterUtil.CreateDynamicParameters(param);
+            return cnn.Query(type, sql, newParam, transaction, buffered, commandTimeout, commandType);
+        }
+
         /// <summary>
         ///     Executes a single-row query, returning the data typed as <paramref name="type" />.
         /// </summary>
@@ -388,6 +541,17 @@ namespace Jiifureit.Dapper.OutsideSql
         {
             var bindType = DataProviderUtil.GetBindVariableType(cnn);
             var sql = _ParseFile(filepath, param, bindType);
+            var newParam = DynamicParameterUtil.CreateDynamicParameters(param);
+            return cnn.QueryFirst(type, sql, newParam, transaction, commandTimeout, commandType);
+        }
+
+        public static object QueryFirstOutsideSql(this IDbConnection cnn, Type type, Stream sqlstream, Encoding encoding = null,
+            object param = null, IDbTransaction transaction = null,
+            int? commandTimeout = null, CommandType? commandType = null)
+        {
+            if (encoding == null) encoding = Encoding.UTF8;
+            var bindType = DataProviderUtil.GetBindVariableType(cnn);
+            var sql = _ParseStream(sqlstream, encoding, param, bindType);
             var newParam = DynamicParameterUtil.CreateDynamicParameters(param);
             return cnn.QueryFirst(type, sql, newParam, transaction, commandTimeout, commandType);
         }
@@ -418,6 +582,17 @@ namespace Jiifureit.Dapper.OutsideSql
             return cnn.QueryFirstOrDefault(type, sql, newParam, transaction, commandTimeout, commandType);
         }
 
+        public static object QueryFirstOrDefaultOutsideSql(this IDbConnection cnn, Type type, Stream sqlstream, Encoding encoding = null,
+            object param = null, IDbTransaction transaction = null,
+            int? commandTimeout = null, CommandType? commandType = null)
+        {
+            if (encoding == null) encoding = Encoding.UTF8;
+            var bindType = DataProviderUtil.GetBindVariableType(cnn);
+            var sql = _ParseStream(sqlstream, encoding, param, bindType);
+            var newParam = DynamicParameterUtil.CreateDynamicParameters(param);
+            return cnn.QueryFirstOrDefault(type, sql, newParam, transaction, commandTimeout, commandType);
+        }
+
         /// <summary>
         ///     Executes a single-row query, returning the data typed as <paramref name="type" />.
         /// </summary>
@@ -440,6 +615,17 @@ namespace Jiifureit.Dapper.OutsideSql
         {
             var bindType = DataProviderUtil.GetBindVariableType(cnn);
             var sql = _ParseFile(filepath, param, bindType);
+            var newParam = DynamicParameterUtil.CreateDynamicParameters(param);
+            return cnn.QuerySingle(type, sql, newParam, transaction, commandTimeout, commandType);
+        }
+
+        public static object QuerySingleOutsideSql(this IDbConnection cnn, Type type, Stream sqlstream, Encoding encoding = null,
+            object param = null, IDbTransaction transaction = null,
+            int? commandTimeout = null, CommandType? commandType = null)
+        {
+            if (encoding == null) encoding = Encoding.UTF8;
+            var bindType = DataProviderUtil.GetBindVariableType(cnn);
+            var sql = _ParseStream(sqlstream, encoding, param, bindType);
             var newParam = DynamicParameterUtil.CreateDynamicParameters(param);
             return cnn.QuerySingle(type, sql, newParam, transaction, commandTimeout, commandType);
         }
@@ -470,6 +656,18 @@ namespace Jiifureit.Dapper.OutsideSql
             return cnn.QuerySingleOrDefault(type, sql, newParam, transaction, commandTimeout, commandType);
         }
 
+        public static object QuerySingleOrDefaultOutsideSql(this IDbConnection cnn, Type type, Stream sqlstream, Encoding encoding = null,
+            object param = null, IDbTransaction transaction = null,
+            int? commandTimeout = null, CommandType? commandType = null)
+        {
+            if (encoding == null) encoding = Encoding.UTF8;
+            var bindType = DataProviderUtil.GetBindVariableType(cnn);
+            var sql = _ParseStream(sqlstream, encoding, param, bindType);
+            var newParam = DynamicParameterUtil.CreateDynamicParameters(param);
+            return cnn.QuerySingleOrDefault(type, sql, newParam, transaction, commandTimeout, commandType);
+        }
+
+
         /// <summary>
         ///     Execute a command that returns multiple result sets, and access each in turn.
         /// </summary>
@@ -485,6 +683,17 @@ namespace Jiifureit.Dapper.OutsideSql
         {
             var bindType = DataProviderUtil.GetBindVariableType(cnn);
             var sql = _ParseFile(filepath, param, bindType);
+            var newParam = DynamicParameterUtil.CreateDynamicParameters(param);
+            return cnn.QueryMultiple(sql, newParam, transaction, commandTimeout, commandType);
+        }
+
+        public static SqlMapper.GridReader QueryMultipleOutsideSql(this IDbConnection cnn, Stream sqlstream, Encoding encoding = null,
+            object param = null, IDbTransaction transaction = null,
+            int? commandTimeout = null, CommandType? commandType = null)
+        {
+            if (encoding == null) encoding = Encoding.UTF8;
+            var bindType = DataProviderUtil.GetBindVariableType(cnn);
+            var sql = _ParseStream(sqlstream, encoding, param, bindType);
             var newParam = DynamicParameterUtil.CreateDynamicParameters(param);
             return cnn.QueryMultiple(sql, newParam, transaction, commandTimeout, commandType);
         }
@@ -516,6 +725,11 @@ namespace Jiifureit.Dapper.OutsideSql
                 }
             }
 
+            return _ParseRawSql(param, type, sql);
+        }
+
+        private static string _ParseRawSql(object param, BindVariableType type, string sql)
+        {
             // parse file content.
             var parser = new Parser(sql);
             var rootNode = parser.Parse();
@@ -532,7 +746,7 @@ namespace Jiifureit.Dapper.OutsideSql
                 {
                     if (param is DynamicParameters dynamicParam)
                     {
-                        var lookup = (SqlMapper.IParameterLookup) dynamicParam;
+                        var lookup = (SqlMapper.IParameterLookup)dynamicParam;
                         using (var names = dynamicParam.ParameterNames.GetEnumerator())
                         {
                             while (names.MoveNext())
@@ -578,6 +792,25 @@ namespace Jiifureit.Dapper.OutsideSql
             logger?.LogDebug(ctx.SqlWithValue);
 
             return ctx.Sql;
+        }
+
+        private static string _ParseStream(Stream stream, Encoding encoding, object param,
+            BindVariableType type = BindVariableType.Question)
+        {
+            if (stream == null)
+            {
+                throw new SqlStreamNullException();
+            }
+
+            string sql;
+
+            // Read stream.
+            using (TextReader reader = new StreamReader(stream, encoding))
+            {
+                sql = reader.ReadToEnd();
+            }
+
+            return _ParseRawSql(param, type, sql);
         }
     }
 }

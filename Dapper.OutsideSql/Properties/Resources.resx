@@ -144,6 +144,9 @@
   <data name="EDAO0026" xml:space="preserve">
     <value>Method's return element type({0}) is not able to assign from result.({1}).</value>
   </data>
+  <data name="EDAO0027" xml:space="preserve">
+    <value>SQL Stream is null.</value>
+  </data>
   <data name="ESSR0073" xml:space="preserve">
     <value>CSharpScriptException occured, because {0}</value>
   </data>

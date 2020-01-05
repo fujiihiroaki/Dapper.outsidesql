@@ -196,4 +196,13 @@ namespace Jiifureit.Dapper.OutsideSql.Exception
         {
         }
     }
+
+    [Serializable]
+    public class SqlStreamNullException : SRuntimeException
+    {
+        public SqlStreamNullException()
+            : base("EDAO0027")
+        {
+        }
+    }
 }
