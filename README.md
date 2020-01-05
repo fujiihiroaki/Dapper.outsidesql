@@ -113,7 +113,7 @@ select mb.MEMBER_ID
 C#:
 ```csharp
 var path = "<text file path>";
-var memberList = conn.QueryOutputSql<Hoge>(path, new { memberId = 1, memberName = "hoge%" });
+var memberList = conn.QueryOutsideSql<Hoge>(path, new { memberId = 1, memberName = "hoge%" });
 ``` 
 
 ## Example 2
