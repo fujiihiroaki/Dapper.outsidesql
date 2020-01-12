@@ -1,24 +1,4 @@
-﻿#region copyright
-
-// /*
-//  * Copyright 2018-2018 Hiroaki Fujii  All rights reserved. 
-//  *
-//  * Licensed under the Apache License, Version 2.0 (the "License");
-//  * you may not use this file except in compliance with the License.
-//  * You may obtain a copy of the License at
-//  *
-//  *     http://www.apache.org/licenses/LICENSE-2.0
-//  *
-//  * Unless required by applicable law or agreed to in writing, software
-//  * distributed under the License is distributed on an "AS IS" BASIS,
-//  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
-//  * either express or implied. See the License for the specific language
-//  * governing permissions and limitations under the License.
-//  */
-
-#endregion
-
-#region using
+﻿#region
 
 using System;
 using Microsoft.Extensions.Logging;
@@ -28,22 +8,23 @@ using Microsoft.Extensions.Logging;
 namespace Jiifureit.Dapper.OutsideSql.Log
 {
     /// <summary>
-    /// Class for Microsoft.Exetension.Logging
+    ///     Class for Microsoft.Extension.Logging
     /// </summary>
     public static class Logger
     {
         /// <summary>
-        /// Category. Fully qualified class name.
+        ///     Category. Fully qualified class name.
         /// </summary>
         public static string Category { get; set; }
 
         /// <summary>
-        /// Log Factory. 
+        ///     Log Factory.
         /// </summary>
-        public static ILoggerFactory Factory { get; } = new LoggerFactory();
+        public static ILoggerFactory Factory { get; set; } = new LoggerFactory(); 
+
 
         /// <summary>
-        /// Create logger based on category.
+        ///     Create logger based on category.
         /// </summary>
         /// <returns></returns>
         public static ILogger Create()
@@ -55,7 +36,7 @@ namespace Jiifureit.Dapper.OutsideSql.Log
         }
 
         /// <summary>
-        /// Create logger based on T.
+        ///     Create logger based on T.
         /// </summary>
         /// <returns></returns>
         public static ILogger<T> CreateLogger<T>()

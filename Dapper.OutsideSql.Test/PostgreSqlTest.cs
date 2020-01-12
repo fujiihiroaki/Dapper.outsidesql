@@ -1,7 +1,7 @@
 ﻿#region copyright
 
 // /*
-//  * Copyright 2018-2018 Hiroaki Fujii  All rights reserved. 
+//  * Copyright 2018-2020 Hiroaki Fujii  All rights reserved. 
 //  *
 //  * Licensed under the Apache License, Version 2.0 (the "License");
 //  * you may not use this file except in compliance with the License.
@@ -23,11 +23,18 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.IO;
 using System.Linq;
+using System.Text;
 using Jiifureit.Dapper.OutsideSql;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Debug;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NLog;
 using Npgsql;
+using NLog;
+using NLog.Extensions.Logging;
+using ILogger = Microsoft.Extensions.Logging.ILogger;
+using Logger = Jiifureit.Dapper.OutsideSql.Log.Logger;
 
 #endregion
 
@@ -40,21 +47,39 @@ namespace Dapper.OutsideSql.Test
     public class PostgreSqlTest
     {
         private const string CONNECTION_STRING =
-            "Server=localhost;Port=5432;Database=s2demo;User id=s2demouser;Password=P@ssw0rd123";
-
+            "Server=localhost;Port=5432;Database=s2demo;User id=s2demouser;Password=P@ssword123";
         private const string FILE_LOCATION = @"C:\projects\Dapper.outsidesql\Dapper.OutsideSql.Test";
+        private readonly char DS = Path.DirectorySeparatorChar;
 
-        private readonly Logger _logger
-            = LogManager.LoadConfiguration(FILE_LOCATION + @"\App1.config").GetCurrentClassLogger();
+        private ILogger  _logger;
+        
+        [TestInitialize]
+        public void TestSetup()
+        {
+            var path = $"{FILE_LOCATION}{DS}App1.config";
+            
+            LogManager.LoadConfiguration(path);
+            Logger.Category = "Dapper.OutsideSql.Test.MySqlTest";
+            Logger.Factory.AddProvider(new NLogLoggerProvider());
+            Logger.Factory.AddProvider(new DebugLoggerProvider());
+            
+            _logger = Logger.CreateLogger<PostgreSqlTest>();
+        }
+
+        [TestCleanup]
+        public void TestEnd()
+        {
+            LogManager.Shutdown();
+        }
 
         [TestMethod]
         public void TestSelect1()
         {
-            var filePath = FILE_LOCATION + @"\Select1Test.sql";
+            var filePath = FILE_LOCATION + DS + @"Select1Test.sql";
             using (var conn = new NpgsqlConnection(CONNECTION_STRING))
             {
                 conn.Open();
-                _logger.Debug("--- Start ---");
+                _logger.LogDebug("--- Start File Test ---");
                 var list = conn.QueryOutsideSql<Test1>(filePath, new {sarary = 1500});
                 Assert.AreEqual(7, list.AsList().Count, "Test Count1");
 
@@ -72,18 +97,56 @@ namespace Dapper.OutsideSql.Test
                 enumerable = list.ToList();
                 Assert.AreEqual(14, enumerable.AsList().Count, "Test Count3");
             }
+            
+            _logger.LogDebug("--- END File Test ---");
 
-            _logger.Debug("--- END ---");
+            using (var conn = new NpgsqlConnection(CONNECTION_STRING))
+            {
+                conn.Open();
+                
+                _logger.LogDebug("--- Start Stream Test ---");
+                    
+                using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
+                {
+                    var list = conn.QueryOutsideSql<Test1>(stream, Encoding.UTF8, new {sarary = 1500});
+                    Assert.AreEqual(7, list.AsList().Count, "Test Count11");
+                }
+
+                using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
+                {
+                    var list = conn.QueryOutsideSql<Test1>(stream, Encoding.UTF8, new {jobnm = "CLERK"});
+                    var enumerable = list.ToList();
+                    Assert.AreEqual(4, enumerable.AsList().Count, "Test Count12");
+
+                    var data = enumerable[1];
+                    Assert.AreEqual(7876, data.EmpNo, "Entity Test11");
+                    Assert.AreEqual("ADAMS", data.Ename, "Entity Test12");
+                    Assert.AreEqual("CLERK", data.Job, "Entity Test13");
+                    Assert.AreEqual("RESEARCH", data.DName, "Entity Test14");
+                }
+
+                using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
+                {
+                    var list = conn.QueryOutsideSql<Test1>(stream, Encoding.UTF8);
+                    var enumerable = list.ToList();
+                    Assert.AreEqual(14, enumerable.AsList().Count, "Test Count13");
+                }
+                    
+                _logger.LogDebug("--- END Stream Test ---");
+            }
+            
+            _logger.LogDebug("--- END ---");
+
         }
 
         [TestMethod]
         public void TestSelect2()
         {
-            var filePath = FILE_LOCATION + @"\Select2Test.sql";
+            var filePath = FILE_LOCATION + DS + @"Select2Test.sql";
             using (var conn = new NpgsqlConnection(CONNECTION_STRING))
             {
                 conn.Open();
-                _logger.Debug("--- Start ---");
+                _logger.LogDebug("--- Start ---");
 
                 var list = conn.QueryOutsideSql<Test1>(filePath, new { sarary = 1500 });
                 Assert.AreEqual(7, list.AsList().Count, "Test Count21");
@@ -110,17 +173,17 @@ namespace Dapper.OutsideSql.Test
                 Assert.AreEqual(2, list.AsList().Count, "Test Count25");
             }
 
-            _logger.Debug("--- END ---");
+            _logger.LogDebug("--- END ---");
         }
 
         [TestMethod]
         public void TestCrud()
         {
-            var filePath = FILE_LOCATION + @"\Crud1Test.sql";
+            var filePath = FILE_LOCATION + DS + @"Crud1Test.sql";
             using (var conn = new NpgsqlConnection(CONNECTION_STRING))
             {
                 conn.Open();
-                _logger.Debug("--- Start ---");
+                _logger.LogDebug("--- Start ---");
 
                 IDbTransaction tran = conn.BeginTransaction();
 
@@ -128,20 +191,20 @@ namespace Dapper.OutsideSql.Test
                     tran);
                 Assert.AreEqual(2, ret, "Test Update3");
 
-                tran.Commit();
+                tran.Rollback();
             }
 
-            _logger.Debug("--- END ---");
+            _logger.LogDebug("--- END ---");
         }
 
         [TestMethod]
         public void TestCrud2()
         {
-            var filePath = FILE_LOCATION + @"\Crud2Test.sql";
+            var filePath = FILE_LOCATION + DS + @"Crud2Test.sql";
             using (var conn = new NpgsqlConnection(CONNECTION_STRING))
             {
                 conn.Open();
-                _logger.Debug("--- Start ---");
+                _logger.LogDebug("--- Start ---");
 
                 IDbTransaction tran = conn.BeginTransaction();
 
@@ -149,29 +212,33 @@ namespace Dapper.OutsideSql.Test
                     new {deptno = 50, nm = "SHOP", location = "TOKYO", active = true}, tran);
                 Assert.AreEqual(1, ret, "Test Insert4");
 
-                tran.Commit();
+                tran.Rollback();
             }
 
-            _logger.Debug("--- END ---");
+            _logger.LogDebug("--- END ---");
         }
 
         [TestMethod]
         public void TestCrud3()
         {
-            var filePath = FILE_LOCATION + @"\Crud3Test.sql";
+            var filePath = FILE_LOCATION + DS + @"Crud3Test.sql";
             using (var conn = new NpgsqlConnection(CONNECTION_STRING))
             {
                 conn.Open();
-                _logger.Debug("--- Start ---");
+                _logger.LogDebug("--- Start ---");
 
                 IDbTransaction tran = conn.BeginTransaction();
-                var ret = conn.ExecuteOutsideSql(filePath, new {no = 50}, tran);
-                Assert.AreEqual(1, ret, "Test Insert4");
+                var sql = "insert into DEPT (DEPTNO, DNAME) values (50, 'DEPT50')";
+                var ret = conn.ExecuteLog(sql, tran);
+                Assert.AreEqual(1, ret, "Test Delete1");
+                
+                ret = conn.ExecuteOutsideSql(filePath, new {no = 50}, tran);
+                Assert.AreEqual(1, ret, "Test Delete2");
 
                 tran.Commit();
             }
 
-            _logger.Debug("--- END ---");
+            _logger.LogDebug("--- END ---");
         }
     }
 }
