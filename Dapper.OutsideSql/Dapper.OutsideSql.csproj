@@ -16,7 +16,7 @@
     <PackageLicenseUrl>http://www.apache.org/licenses/LICENSE-2.0</PackageLicenseUrl>
     <SignAssembly>false</SignAssembly>
     <Description>Dapper extension adding outside sql function reading text file.</Description>
-    <PackageReleaseNotes>1.0.0
+    <PackageReleaseNotes>0.6.0             new feature, textfile stream to parameters.
 0.5.1             bugfix . initializing error when Logger,Category is null.
 0.5.0             release,
                      add class method that returns ILogger&lt;T&gt;. 
@@ -30,7 +30,7 @@
 0.30              first beta release.
                      add .NET framwork 4.7 support.
 </PackageReleaseNotes>
-    <PackageVersion>1.0.0</PackageVersion>
+    <PackageVersion>0.6.0</PackageVersion>
   </PropertyGroup>
 
   <ItemGroup>
