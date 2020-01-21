@@ -7,16 +7,17 @@
     <Product>Jiifureit.Dapper.OutsideSql</Product>
     <PackageId>Jiifureit.Dapper.OutsideSql</PackageId>
     <Copyright>2018 - 2020 Hiroaki Fujii</Copyright>
-    <Version>0.6.0</Version>
+    <Version>0.7.0</Version>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageProjectUrl>https://github.com/fujiihiroaki/Dapper.outsidesql</PackageProjectUrl>
     <RepositoryUrl>https://github.com/fujiihiroaki/Dapper.outsidesql</RepositoryUrl>
     <PackageTags>sql;Dapper;extension;orm;</PackageTags>
     <RepositoryType>git</RepositoryType>
-    <PackageLicenseUrl>http://www.apache.org/licenses/LICENSE-2.0</PackageLicenseUrl>
+    <PackageLicenseUrl></PackageLicenseUrl>
     <SignAssembly>false</SignAssembly>
     <Description>Dapper extension adding outside sql function reading text file.</Description>
-    <PackageReleaseNotes>0.6.0             new feature, textfile stream to parameters.
+    <PackageReleaseNotes>0.7.0             add asynchronous methods.
+0.6.0             new feature, textfile stream to parameters.
 0.5.1             bugfix . initializing error when Logger,Category is null.
 0.5.0             release,
                      add class method that returns ILogger&lt;T&gt;. 
@@ -30,7 +31,8 @@
 0.30              first beta release.
                      add .NET framwork 4.7 support.
 </PackageReleaseNotes>
-    <PackageVersion>0.6.0</PackageVersion>
+    <PackageVersion>0.7.0</PackageVersion>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
   </PropertyGroup>
 
   <ItemGroup>
