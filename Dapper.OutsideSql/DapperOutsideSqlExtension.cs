@@ -41,7 +41,7 @@ namespace Jiifureit.Dapper.OutsideSql
     /// <summary>
     ///     Dapper Extension for using Outside SQL file.
     /// </summary>
-    public static class DapperOutsideSqlExtension
+    public static partial class DapperOutsideSqlExtension
     {
         private static readonly ILogger logger = Logger.Create();
 
@@ -996,9 +996,16 @@ namespace Jiifureit.Dapper.OutsideSql
             {
                 var charcode = fileReader.Read(fileInfo);
 
-                using (TextReader reader = new StreamReader(filepath, charcode.GetEncoding()))
+                // using (TextReader reader = new StreamReader(filepath, charcode.GetEncoding()))
+                // {
+                //     sql = reader.ReadToEnd();
+                // }
+                using (var stream = new StreamReader(filepath, charcode.GetEncoding()))
                 {
-                    sql = reader.ReadToEnd();
+                    using (var reader = TextReader.Synchronized(stream))
+                    {
+                        sql = reader.ReadToEnd();
+                    }
                 }
             }
 
@@ -1097,9 +1104,12 @@ namespace Jiifureit.Dapper.OutsideSql
             string sql;
 
             // Read stream.
-            using (TextReader reader = new StreamReader(stream, encoding))
+            using (var streamReader = new StreamReader(stream, encoding))
             {
-                sql = reader.ReadToEnd();
+                using (var reader = TextReader.Synchronized(streamReader))
+                {
+                    sql = reader.ReadToEnd();
+                }
             }
 
             return _ParseRawSql(param, type, sql);
