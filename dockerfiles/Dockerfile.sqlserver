@@ -3,7 +3,8 @@
 # GitRepo: https://github.com/Microsoft/mssql-docker
 
 # Base OS layer: Latest Ubuntu LTS.
-FROM ubuntu:16.04
+#FROM ubuntu:18.04
+FROM mcr.microsoft.com/mssql/server:2019-latest
 
 ENV ACCEPT_EULA Y
 ENV SA_PASSWORD  P@ssw0rd123
@@ -15,7 +16,7 @@ ENV MSSQL_COLLATION 'Japanese_XJIS_100_CS_AS_KS_WS'
 EXPOSE 1433
 
 # Copy all SQL Server runtime files from build drop into image.
-COPY ./install /
+#COPY ./install /
 
 # Run SQL Server process.
 CMD [ "/opt/mssql/bin/sqlservr" ]

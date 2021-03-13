@@ -1,11 +1,13 @@
 ﻿#region copyright
 
 // /* 
-// *  Copyright (c) 2018-2020 Hiroaki Fujii All rights reserved. Licensed under the MIT license. 
+// *  Copyright (c) 2018-2021 Hiroaki Fujii All rights reserved. Licensed under the MIT license. 
 // *  See LICENSE in the source repository root for complete license information. 
 // */
 
 #endregion
+
+#if NETCOREAPP3_1_OR_GREATER
 
 #region using
 
@@ -226,3 +228,5 @@ namespace Dapper.OutsideSql.Test
         }
     }
 }
+
+#endif
