@@ -1,7 +1,7 @@
 ﻿#region copyright
 
 // /* 
-// *  Copyright (c) 2018-2021 Hiroaki Fujii All rights reserved. Licensed under the MIT license. 
+// *  Copyright (c) 2018-2022 Hiroaki Fujii All rights reserved. Licensed under the MIT license. 
 // *  See LICENSE in the source repository root for complete license information. 
 // */
 
