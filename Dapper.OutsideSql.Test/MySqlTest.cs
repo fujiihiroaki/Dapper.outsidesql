@@ -268,10 +268,36 @@ namespace Dapper.OutsideSql.Test
         }
         
         [TestMethod]
+        public void TestExecuteMultiNoResults()
+        {
+            using (var conn = new MySqlConnection(CONNECTION_STRING))
+            {
+                conn.Open();
+                _logger.LogDebug("--- Start ---");
+                
+                IDbTransaction tran = conn.BeginTransaction();
+                var sql = "insert into DEPT (DEPTNO, DNAME) values (/*DeptNo*/50, /*Dname*/'DEPT50')";
+                var param = new[] { new { DeptNo = 90, Dname = "DEPT90" }, new { DeptNo = 91, Dname = "DEPT91" } };
+                var ret = conn.ExecuteLog(sql, param, tran);
+                Assert.AreEqual(2, ret, "Test ExecuteMultiNoResults against array");
+
+                var param2 = new List<Foo>
+                {
+                    new(deptNo: 93, dname: "DEPT93"),
+                    new(deptNo: 92, dname: "DEPT92"),
+                    new(deptNo: 94, dname: "DEPT94")
+                };
+                var ret2 = conn.ExecuteLog(sql, param2, tran);
+                Assert.AreEqual(3, ret2, "Test ExecuteMultiNoResults against List");
+            }
+            _logger.LogDebug("--- END ---");
+        }
+
+        [TestMethod]
         public async Task TestSelectAsync1()
         {
             var filePath = FILE_LOCATION + DS + @"Select1Test.sql";
-            using (var conn = new MySqlConnection(CONNECTION_STRING))
+            await using (var conn = new MySqlConnection(CONNECTION_STRING))
             {
                 conn.Open();
                 _logger.LogDebug("--- Start File Test ---");
@@ -295,19 +321,19 @@ namespace Dapper.OutsideSql.Test
             
             _logger.LogDebug("--- END File Test ---");
 
-            using (var conn = new MySqlConnection(CONNECTION_STRING))
+            await using (var conn = new MySqlConnection(CONNECTION_STRING))
             {
                 conn.Open();
                 
                 _logger.LogDebug("--- Start Stream Test ---");
-                    
-                using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
+
+                await using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
                 {
                     var list = await conn.QueryOutsideSqlAsync<Test1>(stream, Encoding.UTF8, new {sarary = 1500});
                     Assert.AreEqual(7, list.AsList().Count, "Test Count11");
                 }
 
-                using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
+                await using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
                 {
                     var list = await conn.QueryOutsideSqlAsync<Test1>(stream, Encoding.UTF8, new {jobnm = "CLERK"});
                     var enumerable = list.ToList();
@@ -320,7 +346,7 @@ namespace Dapper.OutsideSql.Test
                     Assert.AreEqual("RESEARCH", data.DName, "Entity Test14");
                 }
 
-                using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
+                await using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
                 {
                     var list = await conn.QueryOutsideSqlAsync<Test1>(stream, Encoding.UTF8);
                     var enumerable = list.ToList();
@@ -338,7 +364,7 @@ namespace Dapper.OutsideSql.Test
         public async Task TestSelectAsync2()
         {
             var filePath = FILE_LOCATION + DS + @"Select2Test.sql";
-            using (var conn = new MySqlConnection(CONNECTION_STRING))
+            await using (var conn = new MySqlConnection(CONNECTION_STRING))
             {
                 conn.Open();
                 _logger.LogDebug("--- Start ---");
@@ -373,7 +399,7 @@ namespace Dapper.OutsideSql.Test
         [TestMethod]
         public async Task TestSelectAsync3()
         {
-            using (var conn = new MySqlConnection(CONNECTION_STRING))
+            await using (var conn = new MySqlConnection(CONNECTION_STRING))
             {
                 conn.Open();
                 _logger.LogDebug("--- Start ---");
@@ -396,12 +422,12 @@ namespace Dapper.OutsideSql.Test
         public async Task TestCrudAsync1()
         {
             var filePath = FILE_LOCATION + DS + @"Crud1Test.sql";
-            using (var conn = new MySqlConnection(CONNECTION_STRING))
+            await using (var conn = new MySqlConnection(CONNECTION_STRING))
             {
                 conn.Open();
                 _logger.LogDebug("--- Start ---");
 
-                IDbTransaction tran = conn.BeginTransaction();
+                IDbTransaction tran = await conn.BeginTransactionAsync();
 
                 var ret = await conn.ExecuteOutsideSqlAsync(filePath, new {newsarary = 2000, salary = 960, ts = DateTime.Now},
                     tran);
@@ -417,12 +443,12 @@ namespace Dapper.OutsideSql.Test
         public async Task TestCrudAsync2()
         {
             var filePath = FILE_LOCATION + DS + @"Crud2Test.sql";
-            using (var conn = new MySqlConnection(CONNECTION_STRING))
+            await using (var conn = new MySqlConnection(CONNECTION_STRING))
             {
                 conn.Open();
                 _logger.LogDebug("--- Start ---");
 
-                IDbTransaction tran = conn.BeginTransaction();
+                IDbTransaction tran = await conn.BeginTransactionAsync();
 
                 var ret = await conn.ExecuteOutsideSqlAsync(filePath,
                     new {deptno = 50, nm = "SHOP", location = "TOKYO", active = 1}, tran);
@@ -438,12 +464,12 @@ namespace Dapper.OutsideSql.Test
         public async Task TestCrudAsync3()
         {
             var filePath = FILE_LOCATION + DS + @"Crud3Test.sql";
-            using (var conn = new MySqlConnection(CONNECTION_STRING))
+            await using (var conn = new MySqlConnection(CONNECTION_STRING))
             {
                 conn.Open();
                 _logger.LogDebug("--- Start ---");
 
-                IDbTransaction tran = conn.BeginTransaction();
+                IDbTransaction tran = await conn.BeginTransactionAsync();
                 var sql = "insert into DEPT (DEPTNO, DNAME) values (/*DeptNo*/50, /*Dname*/'DEPT50')";
                 var ret = await conn.ExecuteLogAsync(sql, new {DeptNo = 50, Dname= "DEPT50"}, tran);
                 Assert.AreEqual(1, ret, "Test Delete1");
@@ -455,6 +481,64 @@ namespace Dapper.OutsideSql.Test
             }
 
             _logger.LogDebug("--- END ---");
+        }
+
+        [TestMethod]
+        public async Task TestExecuteMultiNoResultsAsync()
+        {
+            var filePath = FILE_LOCATION + DS + @"Crud2Test.sql";
+            await using (var conn = new MySqlConnection(CONNECTION_STRING))
+            {
+                conn.Open();
+                _logger.LogDebug("--- Start ---");
+                
+                IDbTransaction tran = await conn.BeginTransactionAsync();
+                var param = new[] { 
+                    new { deptNo = 90, nm = "DEPT90", location = "NewYork", active = 1  }
+                    , new { deptNo = 91, nm = "DEPT91", location = "San Francisco", active = 0 } };
+                var ret = await conn.ExecuteOutsideSqlAsync(filePath, param, tran);
+                Assert.AreEqual(2, ret, "Test ExecuteMultiNoResults against array");
+
+                var param2 = new List<Foo2>
+                {
+                    new(deptNo: 93, dname: "DEPT93", location: "NewYork", active: 1 ),
+                    new(deptNo: 92, dname: "DEPT92", location: "NewYork", active: 0),
+                    new(deptNo: 94, dname: "DEPT94", location: "San Francisco", active: 1)
+                };
+                var ret2 = await conn.ExecuteOutsideSqlAsync(filePath, param2, tran);
+                Assert.AreEqual(3, ret2, "Test ExecuteMultiNoResults against List");
+            }
+            _logger.LogDebug("--- END ---");
+        }
+        
+        private class Foo
+        {
+            public Foo(int deptNo, string dname)
+            {
+                DeptNo = deptNo;
+                Dname = dname;
+            }
+
+            public int DeptNo { get; set; }
+            public string Dname { get; set; }
+        }
+        
+        private class Foo2
+        {
+            public Foo2(int deptNo, string dname, string location, int active)
+            {
+                DeptNo = deptNo;
+                Nm = dname;
+                Active = active;
+                Location = location;
+            }
+
+            public int DeptNo { get; set; }
+            public string Nm { get; set; }
+            
+            public int Active { get; set; }
+            
+            public string Location { get; set; }
         }
     }
 }

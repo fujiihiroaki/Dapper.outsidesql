@@ -28,6 +28,8 @@ using Jiifureit.Dapper.OutsideSql.Impl;
 using Jiifureit.Dapper.OutsideSql.SqlParser;
 using Jiifureit.Dapper.OutsideSql.Utility;
 using Microsoft.Extensions.Logging;
+using System.Collections;
+using System.Linq;
 using Logger = Jiifureit.Dapper.OutsideSql.Log.Logger;
 
 #endregion
@@ -373,7 +375,7 @@ namespace Jiifureit.Dapper.OutsideSql
         /// <param name="splitOn">The field we should split and read the second object from (default: "Id").</param>
         /// <param name="commandTimeout">The command timeout (in seconds).</param>
         /// <param name="commandType">The type of command to execute.</param>
-        /// <exception cref="ArgumentNullException"><paramref name="type" /> is <c>null</c>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="types" /> is <c>null</c>.</exception>
         /// <returns>
         ///     A sequence of data of the supplied type; if a basic type (int, string, etc) is queried then the data from the first
         ///     column in assumed, otherwise an instance is
@@ -520,6 +522,15 @@ namespace Jiifureit.Dapper.OutsideSql
         /// <param name="bindVariableType"></param>
         private static string _LogSql(string sql, object param, BindVariableType bindVariableType)
         {
+            // IEnumerable<> Check
+            bool IsGenericEnumerable(Type type)
+            {
+                return type.GetInterfaces()
+                    .Any(t => t.IsGenericType &&
+                              (t.GetGenericTypeDefinition() == typeof(ICollection<>) ||
+                               t.GetGenericTypeDefinition() == typeof(IList<>)));
+            }
+            
             // parse file content.
             var parser = new Parser(sql);
             var rootNode = parser.Parse();
@@ -549,18 +560,177 @@ namespace Jiifureit.Dapper.OutsideSql
                                     ctx.AddArg(name, null, null);
                             }
                         }
+                        rootNode.Accept(ctx);
+                        // log sql.
+                        logger?.LogDebug(ctx.SqlWithValue);
                     }
                     else
                     {
-                        var proprties = param.GetType().GetProperties();
-                        proprties.AsList().ForEach(p =>
+#if DEBUG
+                        var paramType = param.GetType();
+                        if (paramType.IsArray)
                         {
-                            var v = p.GetValue(param);
-                            if (v != null)
-                                ctx.AddArg(p.Name, p.GetValue(param), p.GetValue(param).GetType());
-                            else
-                                ctx.AddArg(p.Name, null, null);
-                        });
+                            Array array = (Array)param;
+                            for (int i = 0; i < array.Length; i++)
+                            {
+                                ctx = new CommandContextImpl(BindVariableType.Question)
+                                {
+                                    BindVariableType = bindVariableType
+                                };
+                                
+                                var pValue = array.GetValue(i);
+                                var properties = pValue.GetType().GetProperties();
+                                foreach (var property in properties)
+                                {
+                                    ctx.AddArg(property.Name, property.GetValue(pValue), property.GetValue(pValue).GetType());
+                                }
+                                rootNode.Accept(ctx);
+                                logger?.LogDebug(ctx.SqlWithValue);
+                            }
+                        }
+                        else if (paramType.GetInterface("System.Collections.IList") != null)
+                        {
+                            var list = (IList) param;
+                            foreach (object pValue in list)
+                            {
+                                ctx = new CommandContextImpl(BindVariableType.Question)
+                                {
+                                    BindVariableType = bindVariableType
+                                };
+
+                                var properties = pValue.GetType().GetProperties();
+                                foreach (var property in properties)
+                                {
+                                    ctx.AddArg(property.Name, property.GetValue(pValue), property.GetValue(pValue).GetType());
+                                }
+                                rootNode.Accept(ctx);
+                                logger?.LogDebug(ctx.SqlWithValue);
+                            }
+                        }
+                        else if (paramType.GetInterface("System.Collections.ICollection") != null
+                                 || IsGenericEnumerable(paramType))
+                        {
+                            var list = ((ICollection)param).GetEnumerator();
+                            list.Reset();
+                            while (list.MoveNext())
+                            {
+                                ctx = new CommandContextImpl(BindVariableType.Question)
+                                {
+                                    BindVariableType = bindVariableType
+                                };
+
+                                var pValue = list.Current;
+                                var properties = pValue?.GetType().GetProperties();
+                                if (properties != null)
+                                {
+                                    foreach (var property in properties)
+                                    {
+                                        ctx.AddArg(property.Name, property.GetValue(pValue), property.GetValue(pValue).GetType());
+                                    }
+                                }
+                                else
+                                {
+                                    throw new NullReferenceException("parameter properties is null");
+                                }
+                                
+                                rootNode.Accept(ctx);
+                                logger?.LogDebug(ctx.SqlWithValue);
+                            }
+                        }
+                        else
+                        {
+                            var properties = param.GetType().GetProperties();
+                            properties.AsList().ForEach(p =>
+                            {
+                                var v = p.GetValue(param);
+                                if (v != null)
+                                    ctx.AddArg(p.Name, p.GetValue(param), p.GetValue(param).GetType());
+                                else
+                                    ctx.AddArg(p.Name, null, null);
+                            });
+                            rootNode.Accept(ctx);
+                            logger?.LogDebug(ctx.SqlWithValue);
+                        }
+#else
+                        var paramType = param.GetType();
+                        if (paramType.IsArray)
+                        {
+                            Array array = (Array)param;
+                            for (int i = 0; i < array.Length; i++)
+                            {
+                                ctx = new CommandContextImpl(BindVariableType.Question)
+                                {
+                                    BindVariableType = bindVariableType
+                                };
+                                
+                                var pValue = array.GetValue(i);
+                                var properties = pValue.GetType().GetProperties();
+                                properties.AsList().ForEach(p =>
+                                {
+                                    ctx.AddArg(p.Name, p.GetValue(pValue), p.GetValue(pValue).GetType());
+                                });
+                                rootNode.Accept(ctx);
+                                logger?.LogDebug(ctx.SqlWithValue);
+                            }
+                        }
+                        else if (paramType.GetInterface("System.Collections.IList") != null)
+                        {
+                            var list = (IList) param;
+                            foreach (object pValue in list)
+                            {
+                                ctx = new CommandContextImpl(BindVariableType.Question)
+                                {
+                                    BindVariableType = bindVariableType
+                                };
+
+                                var properties = pValue.GetType().GetProperties();
+                                properties.AsList().ForEach(p =>
+                                {
+                                    ctx.AddArg(p.Name, p.GetValue(pValue), p.GetValue(pValue).GetType());
+                                });
+                                rootNode.Accept(ctx);
+                                logger?.LogDebug(ctx.SqlWithValue);
+                            }
+                        }
+                        else if (paramType.GetInterface("System.Collections.ICollection") != null
+                                 || IsGenericEnumerable(paramType))
+                        {
+                            var list = ((ICollection)param).GetEnumerator();
+                            list.Reset();
+                            while (list.MoveNext())
+                            {
+                                ctx = new CommandContextImpl(BindVariableType.Question)
+                                {
+                                    BindVariableType = bindVariableType
+                                };
+
+                                var pValue = list.Current;
+                                var properties = pValue.GetType().GetProperties();
+                                properties.AsList().ForEach(p =>
+                                {
+                                    ctx.AddArg(p.Name, p.GetValue(pValue), p.GetValue(pValue).GetType());
+                                });
+
+                                rootNode.Accept(ctx);
+                                logger?.LogDebug(ctx.SqlWithValue);
+                            }
+                        }
+                        else
+                        {
+                            var properties = param.GetType().GetProperties();
+                            properties.AsList().ForEach(p =>
+                            {
+                                var v = p.GetValue(param);
+                                if (v != null)
+                                    ctx.AddArg(p.Name, p.GetValue(param), p.GetValue(param).GetType());
+                                else
+                                    ctx.AddArg(p.Name, null, null);
+                            });
+                            rootNode.Accept(ctx);
+                            // log sql.
+                            logger?.LogDebug(ctx.SqlWithValue);
+                        }
+#endif
                     }
                 }
                 else
@@ -573,14 +743,18 @@ namespace Jiifureit.Dapper.OutsideSql
                         else
                             ctx.AddArg(keyValue.Key, null, null);
                     }
+                    rootNode.Accept(ctx);
+                    // log sql.
+                    logger?.LogDebug(ctx.SqlWithValue);
                 }
             }
-
-            rootNode.Accept(ctx);
-
-            // log sql.
-            logger?.LogDebug(ctx.SqlWithValue);
-
+            else
+            {
+                rootNode.Accept(ctx);
+               // log sql.
+                logger?.LogDebug(ctx.SqlWithValue);
+            }
+            
             return ctx.Sql;
         }
     }

@@ -59,26 +59,105 @@ namespace Jiifureit.Dapper.OutsideSql.Utility
                         _CreateParameter(newParam, p, p.GetType(), name);
                     }
                 }
+
+                return newParam;
             }
             else
             {
-                var properties = param.GetType().GetProperties();
-                foreach (var info in properties)
+                if (!(param is IEnumerable<KeyValuePair<string, object>> dictionary))
                 {
-                    var val = info.GetValue(param);
-                    var type = info.PropertyType;
-                    var name = info.Name;
-                    _CreateParameter(newParam, val, type, name);
+                    var newParamList = new List<DynamicParameters>();
+                    var paramType = param.GetType();
+                    if (paramType.IsArray)
+                    {
+                        Array array = (Array)param;
+                        for (int i = 0; i < array.Length; i++)
+                        {
+                            newParam = new DynamicParameters();
+                            var pValue = array.GetValue(i);
+                            var properties = pValue.GetType().GetProperties();
+                            foreach (var property in properties)
+                            {
+                                var val = property.GetValue(pValue);
+                                var type = property.PropertyType;
+                                var name = property.Name;
+                                _CreateParameter(newParam, val, type, name);
+                                
+                            }
+                            newParamList.Add(newParam);
+                        }
+                    }
+                    else if (paramType.GetInterface("System.Collections.IList") != null)
+                    {
+                        var list = (IList) param;
+                        foreach (object pValue in list)
+                        {
+                            newParam = new DynamicParameters();
+                            var properties = pValue.GetType().GetProperties();
+                            foreach (var property in properties)
+                            {
+                                var val = property.GetValue(pValue);
+                                var type = property.PropertyType;
+                                var name = property.Name;
+                                _CreateParameter(newParam, val, type, name);
+                            }
+                            newParamList.Add(newParam);
+                        }
+                    }
+                    else if (paramType.GetInterface("System.Collections.ICollection") != null)
+                    {
+                        var list = ((ICollection)param).GetEnumerator();
+                        list.Reset();
+                        while (list.MoveNext())
+                        {
+                            var pValue = list.Current;
+                            var properties = pValue?.GetType().GetProperties();
+                            if (properties != null)
+                            {
+                                foreach (var property in properties)
+                                {
+                                    var val = property.GetValue(pValue);
+                                    var type = property.PropertyType;
+                                    var name = property.Name;
+                                    _CreateParameter(newParam, val, type, name);
+                                }
+                            }
+                            else
+                            {
+                                throw new NullReferenceException("parameter properties is null");
+                            }
+                        }
+                    }
+                    else
+                    {
+                        var properties = param.GetType().GetProperties();
+                        foreach (var info in properties)
+                        {
+                            var val = info.GetValue(param);
+                            var type = info.PropertyType;
+                            var name = info.Name;
+                            _CreateParameter(newParam, val, type, name);
+                        }
+                        return newParam;
+                    }
+                    return newParamList;
+                }
+                else
+                {
+                    foreach (var keyValue in dictionary)
+                    {
+                        var v = keyValue.Value;
+                        _CreateParameter(newParam, v, v.GetType(), keyValue.Key);
+                    }
+                    return newParam;
                 }
             }
-
-            return newParam;
         }
 
         /// <summary>
         ///     RecreateParameter
         /// </summary>
-        /// <param name="newParam">Recreate paramerer</param>
+        /// <param name="newParam">Recreate parameter</param>
         /// <param name="value">parameter value</param>
         /// <param name="info">parameter type</param>
         /// <param name="name">parameter name</param>

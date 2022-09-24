@@ -16,7 +16,8 @@
     <PackageLicenseUrl></PackageLicenseUrl>
     <SignAssembly>false</SignAssembly>
     <Description>Dapper extension adding outside sql function reading text file.</Description>
-    <PackageReleaseNotes>0.8.0             add .NET core 3.1, 5.0 support.
+    <PackageReleaseNotes>0.9.0             new support for Dapper 2.0.123. support for argument of List, Array, etc.
+0.8.0             add .NET core 3.1, 5.0 support.
                      new support for Dapper 2.078, but no new features.
 0.7.1             gradedown Microsoft,Extensions.Logging to 2.2
 0.7.0             add asynchronous methods.

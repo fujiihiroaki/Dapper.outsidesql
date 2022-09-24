@@ -32,6 +32,8 @@ using Jiifureit.Dapper.OutsideSql.Impl;
 using Jiifureit.Dapper.OutsideSql.SqlParser;
 using Jiifureit.Dapper.OutsideSql.Utility;
 using Microsoft.Extensions.Logging;
+using System.Collections;
+using System.Linq;
 using Logger = Jiifureit.Dapper.OutsideSql.Log.Logger;
 
 #endregion
@@ -996,10 +998,6 @@ namespace Jiifureit.Dapper.OutsideSql
             {
                 var charcode = fileReader.Read(fileInfo);
 
-                // using (TextReader reader = new StreamReader(filepath, charcode.GetEncoding()))
-                // {
-                //     sql = reader.ReadToEnd();
-                // }
                 using (var stream = new StreamReader(filepath, charcode.GetEncoding()))
                 {
                     using (var reader = TextReader.Synchronized(stream))
@@ -1021,6 +1019,15 @@ namespace Jiifureit.Dapper.OutsideSql
         /// <returns>sql</returns>
         private static string _ParseRawSql(object param, BindVariableType type, string sql)
         {
+            // IEnumerable<> Check
+            bool IsGenericEnumerable(Type genericType)
+            {
+                return genericType.GetInterfaces()
+                    .Any(t => t.IsGenericType &&
+                              (t.GetGenericTypeDefinition() == typeof(ICollection<>) ||
+                               t.GetGenericTypeDefinition() == typeof(IList<>)));
+            }
+            
             // parse file content.
             var parser = new Parser(sql);
             var rootNode = parser.Parse();
@@ -1051,17 +1058,90 @@ namespace Jiifureit.Dapper.OutsideSql
                             }
                         }
                     }
+                    var paramType = param.GetType();
+                    if (paramType.IsArray)
+                    {
+                        Array array = (Array)param;
+                        for (int i = 0; i < array.Length; i++)
+                        {
+                            ctx = new CommandContextImpl(BindVariableType.Question)
+                            {
+                                BindVariableType = type
+                            };
+                            
+                            var pValue = array.GetValue(i);
+                            var properties = pValue.GetType().GetProperties();
+                            properties.AsList().ForEach(p =>
+                            {
+                                ctx.AddArg(p.Name, p.GetValue(pValue), p.GetValue(pValue).GetType());
+                            });
+                            rootNode.Accept(ctx);
+                            logger?.LogDebug(ctx.SqlWithValue);
+                        }
+                    }
+                    else if (paramType.GetInterface("System.Collections.IList") != null)
+                    {
+                        var list = (IList) param;
+                        foreach (object pValue in list)
+                        {
+                            ctx = new CommandContextImpl(BindVariableType.Question)
+                            {
+                                BindVariableType = type
+                            };
+
+                            var properties = pValue.GetType().GetProperties();
+                            properties.AsList().ForEach(p =>
+                            {
+                                ctx.AddArg(p.Name, p.GetValue(pValue), p.GetValue(pValue).GetType());
+                            });
+                            rootNode.Accept(ctx);
+                            logger?.LogDebug(ctx.SqlWithValue);
+                        }
+                    }
+                    else if (paramType.GetInterface("System.Collections.ICollection") != null
+                             || IsGenericEnumerable(paramType))
+                    {
+                        var list = ((ICollection)param).GetEnumerator();
+                        list.Reset();
+                        while (list.MoveNext())
+                        {
+                            ctx = new CommandContextImpl(BindVariableType.Question)
+                            {
+                                BindVariableType = type
+                            };
+
+                            var pValue = list.Current;
+                            var properties = pValue?.GetType().GetProperties();
+                            if (properties != null)
+                            {
+                                properties.AsList().ForEach(p =>
+                                {
+                                    ctx.AddArg(p.Name, p.GetValue(pValue), p.GetValue(pValue).GetType());
+                                });
+                            }
+                            else
+                            {
+                                throw new NullReferenceException("parameter properties is null");
+                            }
+
+                            rootNode.Accept(ctx);
+                            logger?.LogDebug(ctx.SqlWithValue);
+                        }
+                    }
                     else
                     {
-                        var proprties = param.GetType().GetProperties();
-                        proprties.AsList().ForEach(p =>
+                        var properties = param.GetType().GetProperties();
+                        properties.AsList().ForEach(p =>
                         {
                             var v = p.GetValue(param);
                             if (v != null)
-                                ctx.AddArg(p.Name, v, v.GetType());
+                                ctx.AddArg(p.Name, p.GetValue(param), p.GetValue(param).GetType());
                             else
                                 ctx.AddArg(p.Name, null, null);
                         });
+                        rootNode.Accept(ctx);
+                        // log sql.
+                        logger?.LogDebug(ctx.SqlWithValue);
                     }
                 }
                 else
@@ -1074,13 +1154,21 @@ namespace Jiifureit.Dapper.OutsideSql
                         else
                             ctx.AddArg(keyValue.Key, null, null);
                     }
+
+                    rootNode.Accept(ctx);
+
+                    // log sql.
+                    logger?.LogDebug(ctx.SqlWithValue);
                 }
             }
+            else
+            {
+                rootNode.Accept(ctx);
 
-            rootNode.Accept(ctx);
-
-            // log sql.
-            logger?.LogDebug(ctx.SqlWithValue);
+                // log sql.
+                logger?.LogDebug(ctx.SqlWithValue);
+                
+            }
 
             return ctx.Sql;
         }

@@ -151,6 +151,27 @@ Log:
 ```log
  DEBUG Jiifureit.Dapper.OutsideSql.DapperLogExtension._LogSql select EMP.EMPNO EmpNo,EMP.ENAME Enam from EMP where EMPNO >= 7900 and EMPNO <= 7940
 ``` 
+### Example 4
+C#:
+```csharp
+var path = "<nlog.config path>";
+Jiifureit.Dapper.OutsideSql.Log.Logger.Factory
+    .AddNLog()
+    .AddConsole();
+NLog.LogManager.LoadConfiguration(path);
+var logger = Jiifureit.Dapper.OutsideSql.Log.Logger.CreateLogger<HogeTest>();
+
+IDbTransaction tran = conn.BeginTransaction();
+var sql = "insert into EMP (EMPNO, ENAME) values (/*EmpNo*/1, /*Ename*/'NM50')";
+var param = new[] { new { EmpNo = 100, Ename = "Name1" }, new { DeptNo = 200, Dname = "Name2" } };
+var ret = conn.ExecuteLog(sql, param, tran);
+``` 
+Log:
+```log
+ DEBUG Jiifureit.Dapper.OutsideSql.DapperLogExtension._LogSql insert into EMP (EMPNO, ENAME) values (100, 'Name1')
+ DEBUG Jiifureit.Dapper.OutsideSql.DapperLogExtension._LogSql insert into EMP (EMPNO, ENAME) values (200, 'Name2')
+``` 
+
 
 ## DB Providers 
 - SQL Server

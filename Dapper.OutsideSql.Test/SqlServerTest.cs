@@ -258,6 +258,32 @@ namespace Dapper.OutsideSql.Test
         }
         
         [TestMethod]
+        public void TestExecuteMultiNoResults()
+        {
+            using (var conn = new SqlConnection(CONNECTION_STRING))
+            {
+                conn.Open();
+                _logger.LogDebug("--- Start ---");
+                
+                IDbTransaction tran = conn.BeginTransaction();
+                var sql = "insert into DEPT (DEPTNO, DNAME) values (/*DeptNo*/50, /*Dname*/'DEPT50')";
+                var param = new[] { new { DeptNo = 90, Dname = "DEPT90" }, new { DeptNo = 91, Dname = "DEPT91" } };
+                var ret = conn.ExecuteLog(sql, param, tran);
+                Assert.AreEqual(2, ret, "Test ExecuteMultiNoResults against array");
+
+                var param2 = new List<Foo>
+                {
+                    new(deptNo: 93, dname: "DEPT93"),
+                    new(deptNo: 92, dname: "DEPT92"),
+                    new(deptNo: 94, dname: "DEPT94")
+                };
+                var ret2 = conn.ExecuteLog(sql, param2, tran);
+                Assert.AreEqual(3, ret2, "Test ExecuteMultiNoResults against List");
+            }
+            _logger.LogDebug("--- END ---");
+        }
+
+        [TestMethod]
         public async Task TestSelectAsync1()
         {
             var filePath = FILE_LOCATION + DS + @"Select1Test.sql";
@@ -446,6 +472,64 @@ namespace Dapper.OutsideSql.Test
 
             _logger.LogDebug("--- END ---");
         }
+        
+        [TestMethod]
+        public async Task TestExecuteMultiNoResultsAsync()
+        {
+            var filePath = FILE_LOCATION + DS + @"Crud2Test.sql";
+            await using (var conn = new SqlConnection(CONNECTION_STRING))
+            {
+                conn.Open();
+                _logger.LogDebug("--- Start ---");
+                
+                IDbTransaction tran = await conn.BeginTransactionAsync();
+                var param = new[] { 
+                    new { deptno = 90, nm = "DEPT90", location = "NewYork", active = 1  }
+                    , new { deptno = 91, nm = "DEPT91", location = "San Francisco", active = 0 } };
+                var ret = await conn.ExecuteOutsideSqlAsync(filePath, param, tran);
+                Assert.AreEqual(2, ret, "Test ExecuteMultiNoResults against array");
+
+                var param2 = new List<Foo2>
+                {
+                    new(deptNo: 93, dname: "DEPT93", location: "NewYork", active: 1 ),
+                    new(deptNo: 92, dname: "DEPT92", location: "NewYork", active: 0),
+                    new(deptNo: 94, dname: "DEPT94", location: "San Francisco", active: 1)
+                };
+                var ret2 = await conn.ExecuteOutsideSqlAsync(filePath, param2, tran);
+                Assert.AreEqual(3, ret2, "Test ExecuteMultiNoResults against List");
+            }
+            _logger.LogDebug("--- END ---");
+        }
+        
+        private class Foo
+        {
+            public Foo(int deptNo, string dname)
+            {
+                DeptNo = deptNo;
+                Dname = dname;
+            }
+
+            public int DeptNo { get; set; }
+            public string Dname { get; set; }
+        }
+        
+        private class Foo2
+        {
+            public Foo2(int deptNo, string dname, string location, int active)
+            {
+                deptno = deptNo;
+                nm = dname;
+                this.active = active;
+                this.location = location;
+            }
+
+            public int deptno { get; set; }
+            public string nm { get; set; }
+            
+            public int active { get; set; }
+            
+            public string location { get; set; }
+        }
     }
 
     public class Test1
@@ -455,4 +539,5 @@ namespace Dapper.OutsideSql.Test
         public string Job { get; set; }
         public string DName { get; set; }
     }
+    
 }

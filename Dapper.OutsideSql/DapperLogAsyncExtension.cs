@@ -350,7 +350,7 @@ namespace Jiifureit.Dapper.OutsideSql
         /// <param name="splitOn">The field we should split and read the second object from (default: "Id").</param>
         /// <param name="commandTimeout">The command timeout (in seconds).</param>
         /// <param name="commandType">The type of command to execute.</param>
-        /// <exception cref="ArgumentNullException"><paramref name="type" /> is <c>null</c>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="types" /> is <c>null</c>.</exception>
         /// <returns>
         ///     A sequence of data of the supplied type; if a basic type (int, string, etc) is queried then the data from the first
         ///     column in assumed, otherwise an instance is
