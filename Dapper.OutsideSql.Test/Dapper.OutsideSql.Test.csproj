@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
 
@@ -22,7 +22,7 @@
     <PackageReference Include="NLog.Config" Version="4.7.15" />
     <PackageReference Include="NLog.Extensions.Logging" Version="1.7.4" />
     <PackageReference Include="Npgsql" Version="6.0.4" />
-    <PackageReference Include="Oracle.ManagedDataAccess.Core" Version="2.19.140" />
+    <PackageReference Include="Oracle.ManagedDataAccess.Core" Version="3.21.90" />
     <PackageReference Include="System.Data.SqlClient" Version="4.8.3" />
   </ItemGroup>
 
