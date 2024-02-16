@@ -27,6 +27,7 @@ namespace Jiifureit.Dapper.OutsideSql.Utility
         AtmarkWithParam,
         Question,
         QuestionWithParam,
-        ColonWithParam
+        ColonWithParam,
+        Dollar
     }
 }

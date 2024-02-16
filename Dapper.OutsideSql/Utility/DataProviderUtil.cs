@@ -36,8 +36,10 @@ namespace Jiifureit.Dapper.OutsideSql.Utility
         public static BindVariableType GetBindVariableType(IDbConnection connection)
         {
             var name = connection.GetType().Name;
+            var fullName = connection.GetType().FullName;
             if (name == "SqlConnection" ||
-                name == "DB2Connection")
+                name == "DB2Connection" ||
+                fullName == "System.Data.SQLite.SQLiteConnection")
                 return BindVariableType.AtmarkWithParam;
             else if (name == "OracleConnection")
                 return BindVariableType.ColonWithParam;
@@ -47,6 +49,8 @@ namespace Jiifureit.Dapper.OutsideSql.Utility
                 return BindVariableType.ColonWithParam;
             else if (name == "FbConnection")
                 return BindVariableType.Question;
+            else if (fullName == "Microsoft.Data.Sqlite.SqliteConnection")
+                return BindVariableType.Dollar;
             else
                 return BindVariableType.Question;
         }

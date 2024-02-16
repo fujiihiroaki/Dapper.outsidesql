@@ -171,6 +171,8 @@ namespace Jiifureit.Dapper.OutsideSql.Impl
                 after = sql.Replace("?", "@" + bindVariableName);
             if (BindVariableType == BindVariableType.ColonWithParam)
                 after = sql.Replace("?", ":" + bindVariableName);
+            if (BindVariableType == BindVariableType.Dollar)
+                after = sql.Replace("?", "$" + bindVariableName);
             if (BindVariableType == BindVariableType.QuestionWithParam)
                 after = sql + bindVariableName;
 
