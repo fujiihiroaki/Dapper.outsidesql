@@ -3,14 +3,19 @@
 # GitRepo: https://github.com/Microsoft/mssql-docker
 
 # Base OS layer: Latest Ubuntu LTS.
-#FROM ubuntu:18.04
-FROM mcr.microsoft.com/mssql/server:2019-latest
+FROM mcr.microsoft.com/mssql/server:2022-latest
 
+ENV TZ Asia/Tokyo
 ENV ACCEPT_EULA Y
-ENV SA_PASSWORD  P@ssw0rd123
+ENV NLS_LANG Japanese_Japan.UTF8
+ENV MSSQL_SA_PASSWORD P@ssw0rd123
 ENV MSSQL_PID Developer 
 ENV MSSQL_LCID 1041
 ENV MSSQL_COLLATION 'Japanese_XJIS_100_CS_AS_KS_WS'
+
+WORKDIR /docker-entrypoint-initdb.d
+COPY ./sqls/ /docker-entrypoint-initdb.d/
+RUN chmod -R +x /docker-entrypoint-initdb.d
 
 # Default SQL Server TCP/Port.
 EXPOSE 1433

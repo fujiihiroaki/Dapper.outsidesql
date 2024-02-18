@@ -31,14 +31,14 @@ using System.Text;
 namespace Jiifureit.Dapper.OutsideSql.Utility
 {
     /// <summary>
-    ///     ���b�Z�[�W�R�[�h�ƈ������v���p�e�B�ɓo�^����Ă���
-    ///     �p�^�[���ɓK�p���A���b�Z�[�W��g�ݗ��Ă܂��B
-    ///     ���b�Z�[�W�R�[�h�́A8���ō\������ŏ���1�������b�Z�[�W�̎�ʂŁA
-    ///     E:�G���[�AW:���[�j���O�AI:�C���t�H���[�V�����ō\������܂��B
-    ///     ����3�����V�X�e������Seasar�̏ꍇ�́ASSR�ɂȂ�܂��B
-    ///     �Ō��4���͘A�Ԃł��B
-    ///     ���b�Z�[�W��`�t�@�C���́A�V�X�e���� + Messages.resources�ɂȂ�܂��B
-    ///     SSRMessages.ja-JP.resources�Ȃǂ�p�ӂ��邱�Ƃő�����ɑΉ��ł��܂��B
+    ///     メッセージコードと引数をプロパティに登録されている
+    ///     パターンに適用し、メッセージを組み立てます。
+    ///     メッセージコードは、8桁で構成され最初の1桁がメッセージの種別で、
+    ///     E:エラー、W:ワーニング、I:インフォメーションで構成されます。
+    ///     次の3桁がシステム名でSeasarの場合は、SSRになります。
+    ///     最後の4桁は連番です。
+    ///     メッセージ定義ファイルは、システム名 + Messages.resourcesになります。
+    ///     SSRMessages.ja-JP.resourcesなどを用意することで他言語に対応できます。
     /// </summary>
     public static class MessageFormatter
     {

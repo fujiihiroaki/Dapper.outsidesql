@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net47;netstandard2.0;netcoreapp2.1;netcoreapp2.2;netcoreapp3.1;net5.0;net6.0</TargetFrameworks>
+    <TargetFrameworks>net47;netstandard2.0;net6.0</TargetFrameworks>
     <RootNamespace>Jiifureit.Dapper.OutsideSql</RootNamespace>
     <Authors>Hiroaki Fujii</Authors>
     <Product>Jiifureit.Dapper.OutsideSql</Product>
@@ -35,7 +35,7 @@
 0.30              first beta release.
                      add .NET framwork 4.7 support.
 </PackageReleaseNotes>
-    <PackageVersion>0.9.0</PackageVersion>
+    <PackageVersion>0.10.0</PackageVersion>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
@@ -56,7 +56,7 @@
   <ItemGroup>
     <PackageReference Include="Dapper" Version="2.0.123" />
     <PackageReference Include="Jint" Version="2.11.58" />
-    <PackageReference Include="Microsoft.Extensions.Logging" Version="5.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="2.1.1" />
     <PackageReference Include="ReadJEnc" Version="1.3.1.2" />
   </ItemGroup>
   

@@ -1,7 +1,7 @@
 ﻿#region copyright
 
 // /*
-//  * Copyright 2018-2022 Hiroaki Fujii  All rights reserved. 
+//  * Copyright 2018-2024 Hiroaki Fujii  All rights reserved. 
 //  *
 //  * Licensed under the Apache License, Version 2.0 (the "License");
 //  * you may not use this file except in compliance with the License.
@@ -48,7 +48,7 @@ namespace Dapper.OutsideSql.Test
     [TestClass]
     public class MySqlTest
     {
-        private const string CONNECTION_STRING = "Server=localhost;Database=s2dotnetdemo;Uid=mysql;Pwd=mysql";
+        private const string CONNECTION_STRING = "Server=127.0.0.1;Database=s2dotnetdemo;Uid=mysql;Pwd=mysql";
         private const string FILE_LOCATION = @"C:\projects\Dapper.outsidesql\Dapper.OutsideSql.Test";
         private readonly char DS = Path.DirectorySeparatorChar;
         

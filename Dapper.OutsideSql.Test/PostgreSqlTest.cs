@@ -1,7 +1,7 @@
 ﻿#region copyright
 
 // /*
-//  * Copyright 2018-2022 Hiroaki Fujii  All rights reserved. 
+//  * Copyright 2018-2024 Hiroaki Fujii  All rights reserved. 
 //  *
 //  * Licensed under the Apache License, Version 2.0 (the "License");
 //  * you may not use this file except in compliance with the License.
@@ -297,7 +297,7 @@ namespace Dapper.OutsideSql.Test
         public async Task TestSelectAsync1()
         {
             var filePath = FILE_LOCATION + DS + @"Select1Test.sql";
-            using (var conn = new NpgsqlConnection(CONNECTION_STRING))
+            await using (var conn = new NpgsqlConnection(CONNECTION_STRING))
             {
                 conn.Open();
                 _logger.LogDebug("--- Start File Test ---");
@@ -321,19 +321,19 @@ namespace Dapper.OutsideSql.Test
             
             _logger.LogDebug("--- END File Test ---");
 
-            using (var conn = new NpgsqlConnection(CONNECTION_STRING))
+            await using (var conn = new NpgsqlConnection(CONNECTION_STRING))
             {
                 conn.Open();
                 
                 _logger.LogDebug("--- Start Stream Test ---");
-                    
-                using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
+
+                await using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
                 {
                     var list = await conn.QueryOutsideSqlAsync<Test1>(stream, Encoding.UTF8, new {sarary = 1500});
                     Assert.AreEqual(7, list.AsList().Count, "Test Count11");
                 }
 
-                using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
+                await using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
                 {
                     var list = await conn.QueryOutsideSqlAsync<Test1>(stream, Encoding.UTF8, new {jobnm = "CLERK"});
                     var enumerable = list.ToList();
@@ -346,7 +346,7 @@ namespace Dapper.OutsideSql.Test
                     Assert.AreEqual("RESEARCH", data.DName, "Entity Test14");
                 }
 
-                using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
+                await using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
                 {
                     var list = await conn.QueryOutsideSqlAsync<Test1>(stream, Encoding.UTF8);
                     var enumerable = list.ToList();
@@ -364,7 +364,7 @@ namespace Dapper.OutsideSql.Test
         public async Task TestSelectAsync2()
         {
             var filePath = FILE_LOCATION + DS + @"Select2Test.sql";
-            using (var conn = new NpgsqlConnection(CONNECTION_STRING))
+            await using (var conn = new NpgsqlConnection(CONNECTION_STRING))
             {
                 conn.Open();
                 _logger.LogDebug("--- Start ---");
@@ -400,7 +400,7 @@ namespace Dapper.OutsideSql.Test
         [TestMethod]
         public async Task TestSelectAsync3()
         {
-            using (var conn = new NpgsqlConnection(CONNECTION_STRING))
+            await using (var conn = new NpgsqlConnection(CONNECTION_STRING))
             {
                 conn.Open();
                 _logger.LogDebug("--- Start ---");
@@ -423,12 +423,12 @@ namespace Dapper.OutsideSql.Test
         public async Task TestCrudAsync1()
         {
             var filePath = FILE_LOCATION + DS + @"Crud1Test.sql";
-            using (var conn = new NpgsqlConnection(CONNECTION_STRING))
+            await using (var conn = new NpgsqlConnection(CONNECTION_STRING))
             {
                 conn.Open();
                 _logger.LogDebug("--- Start ---");
 
-                IDbTransaction tran = conn.BeginTransaction();
+                IDbTransaction tran = await conn.BeginTransactionAsync();
 
                 var ret = await conn.ExecuteOutsideSqlAsync(filePath, new {newsarary = 2000, salary = 960, ts = DateTime.Now},
                     tran);
@@ -444,12 +444,12 @@ namespace Dapper.OutsideSql.Test
         public async Task TestCrudAsync2()
         {
             var filePath = FILE_LOCATION + DS + @"Crud2Test.sql";
-            using (var conn = new NpgsqlConnection(CONNECTION_STRING))
+            await using (var conn = new NpgsqlConnection(CONNECTION_STRING))
             {
                 conn.Open();
                 _logger.LogDebug("--- Start ---");
 
-                IDbTransaction tran = conn.BeginTransaction();
+                IDbTransaction tran = await conn.BeginTransactionAsync();
 
                 var ret = await conn.ExecuteOutsideSqlAsync(filePath,
                     new {deptno = 50, nm = "SHOP", location = "TOKYO", active = true}, tran);
@@ -465,12 +465,12 @@ namespace Dapper.OutsideSql.Test
         public async Task TestCrudAsync3()
         {
             var filePath = FILE_LOCATION + DS + @"Crud3Test.sql";
-            using (var conn = new NpgsqlConnection(CONNECTION_STRING))
+            await using (var conn = new NpgsqlConnection(CONNECTION_STRING))
             {
                 conn.Open();
                 _logger.LogDebug("--- Start ---");
 
-                IDbTransaction tran = conn.BeginTransaction();
+                IDbTransaction tran = await conn.BeginTransactionAsync();
                 var sql = "insert into DEPT (DEPTNO, DNAME) values (/*DeptNo*/50, /*Dname*/'DEPT50')";
                 var ret = await conn.ExecuteLogAsync(sql, new {DeptNo = 50, Dname= "DEPT50"}, tran);
                 Assert.AreEqual(1, ret, "Test Delete1");

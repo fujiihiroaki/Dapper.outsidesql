@@ -1,6 +1,6 @@
 ﻿#region copyright
 // /*
-//  * Copyright 2018-2018 Hiroaki Fujii  All rights reserved. 
+//  * Copyright 2018-2024 Hiroaki Fujii  All rights reserved. 
 //  *
 //  * Licensed under the Apache License, Version 2.0 (the "License");
 //  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ namespace Dapper.OutsideSql.Test
     [TestClass]
     public class DapperLogTest
     {
-        private const string CONNECTION_STRING = "Data Source=localhost:1521/pdb1;User Id=s2dotnetdemo;Password=s2dotnetdemo";
+        private const string CONNECTION_STRING = "Data Source=localhost:1521/freepdb1;User Id=s2dotnetdemo;Password=s2dotnetdemo";
         private const string FILE_LOCATION = @"C:\projects\Dapper.outsidesql\Dapper.OutsideSql.Test";
 
         private readonly Logger _logger

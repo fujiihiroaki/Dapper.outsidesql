@@ -1,7 +1,7 @@
 ﻿#region copyright
 
 // /*
-//  * Copyright 2018-2022 Hiroaki Fujii  All rights reserved. 
+//  * Copyright 2018-2024 Hiroaki Fujii  All rights reserved. 
 //  *
 //  * Licensed under the Apache License, Version 2.0 (the "License");
 //  * you may not use this file except in compliance with the License.
@@ -45,7 +45,7 @@ namespace Dapper.OutsideSql.Test
     public class SqlServerTest
     {
         private const string CONNECTION_STRING =
-            "Data Source=localhost;Initial Catalog=s2dotnetdemo;Persist Security Info=True;User ID=sa;Password=P@ssw0rd123";
+            "Server=127.0.0.1;Initial Catalog=s2dotnetdemo;Persist Security Info=True;User ID=sa;Password=P@ssw0rd123;";
         private const string FILE_LOCATION = @"C:\projects\Dapper.outsidesql\Dapper.OutsideSql.Test";
         private readonly char DS = Path.DirectorySeparatorChar;
         
@@ -57,7 +57,7 @@ namespace Dapper.OutsideSql.Test
             var path = $"{FILE_LOCATION}{DS}App1.config";
             
             LogManager.LoadConfiguration(path);
-            Logger.Category = "Dapper.OutsideSql.Test.MySqlTest";
+            Logger.Category = "Dapper.OutsideSql.Test.SqlServerTest";
             Logger.Factory.AddProvider(new NLogLoggerProvider());
             Logger.Factory.AddProvider(new DebugLoggerProvider());
             
@@ -287,7 +287,7 @@ namespace Dapper.OutsideSql.Test
         public async Task TestSelectAsync1()
         {
             var filePath = FILE_LOCATION + DS + @"Select1Test.sql";
-            using (var conn = new SqlConnection(CONNECTION_STRING))
+            await using (var conn = new SqlConnection(CONNECTION_STRING))
             {
                 conn.Open();
                 _logger.LogDebug("--- Start File Test ---");
@@ -311,19 +311,19 @@ namespace Dapper.OutsideSql.Test
             
             _logger.LogDebug("--- END File Test ---");
 
-            using (var conn = new SqlConnection(CONNECTION_STRING))
+            await using (var conn = new SqlConnection(CONNECTION_STRING))
             {
                 conn.Open();
                 
                 _logger.LogDebug("--- Start Stream Test ---");
-                    
-                using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
+
+                await using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
                 {
                     var list = await conn.QueryOutsideSqlAsync<Test1>(stream, Encoding.UTF8, new {sarary = 1500});
                     Assert.AreEqual(7, list.AsList().Count, "Test Count11");
                 }
 
-                using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
+                await using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
                 {
                     var list = await conn.QueryOutsideSqlAsync<Test1>(stream, Encoding.UTF8, new {jobnm = "CLERK"});
                     var enumerable = list.ToList();
@@ -336,7 +336,7 @@ namespace Dapper.OutsideSql.Test
                     Assert.AreEqual("RESEARCH", data.DName, "Entity Test14");
                 }
 
-                using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
+                await using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
                 {
                     var list = await conn.QueryOutsideSqlAsync<Test1>(stream, Encoding.UTF8);
                     var enumerable = list.ToList();
@@ -354,7 +354,7 @@ namespace Dapper.OutsideSql.Test
         public async Task TestSelectAsync2()
         {
             var filePath = FILE_LOCATION + DS + @"Select2Test.sql";
-            using (var conn = new SqlConnection(CONNECTION_STRING))
+            await using (var conn = new SqlConnection(CONNECTION_STRING))
             {
                 conn.Open();
                 _logger.LogDebug("--- Start ---");
@@ -389,7 +389,7 @@ namespace Dapper.OutsideSql.Test
         [TestMethod]
         public async Task TestSelectAsync3()
         {
-            using (var conn = new SqlConnection(CONNECTION_STRING))
+            await using (var conn = new SqlConnection(CONNECTION_STRING))
             {
                 conn.Open();
                 _logger.LogDebug("--- Start ---");
@@ -412,7 +412,7 @@ namespace Dapper.OutsideSql.Test
         public async Task TestCrudAsync1()
         {
             var filePath = FILE_LOCATION + DS + @"Crud1Test.sql";
-            using (var conn = new SqlConnection(CONNECTION_STRING))
+            await using (var conn = new SqlConnection(CONNECTION_STRING))
             {
                 conn.Open();
                 _logger.LogDebug("--- Start ---");
@@ -433,7 +433,7 @@ namespace Dapper.OutsideSql.Test
         public async Task TestCrudAsync2()
         {
             var filePath = FILE_LOCATION + DS + @"Crud2Test.sql";
-            using (var conn = new SqlConnection(CONNECTION_STRING))
+            await using (var conn = new SqlConnection(CONNECTION_STRING))
             {
                 conn.Open();
                 _logger.LogDebug("--- Start ---");
@@ -454,7 +454,7 @@ namespace Dapper.OutsideSql.Test
         public async Task TestCrudAsync3()
         {
             var filePath = FILE_LOCATION + DS + @"Crud3Test.sql";
-            using (var conn = new SqlConnection(CONNECTION_STRING))
+            await using (var conn = new SqlConnection(CONNECTION_STRING))
             {
                 conn.Open();
                 _logger.LogDebug("--- Start ---");
