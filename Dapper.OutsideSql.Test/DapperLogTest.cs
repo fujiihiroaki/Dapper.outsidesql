@@ -59,5 +59,28 @@ namespace Dapper.OutsideSql.Test
 
             }
         }
+
+        [TestMethod]
+        public void TestParameterNull()
+        {
+            using (var conn = new OracleConnection(CONNECTION_STRING))
+            {
+                conn.Open();
+                _logger.Debug("--- Start ---");
+                
+                int empno = 7900;
+                int? empno2 = null;
+                    
+                var param = new DynamicParameters();
+                param.Add("Empno1", empno);
+                param.Add("Empno2", empno2);
+                
+                var sql = "select EMP.EMPNO EmpNo,EMP.ENAME Enam from EMP where EMPNO >= /*Empno1*/500 and EMPNO <= /*Empno2*/1000";
+                var list = conn.QueryLog<Test1>(sql, param);
+                Assert.AreEqual(0, list.AsList().Count, "Test Count1");
+                
+                _logger.Debug("--- End ---");
+            }
+        }
     }
 }

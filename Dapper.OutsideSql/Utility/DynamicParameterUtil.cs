@@ -1,7 +1,7 @@
 ﻿#region copyright
 
 // /*
-//  * Copyright 2018-2022 Hiroaki Fujii  All rights reserved. 
+//  * Copyright 2018-2024 Hiroaki Fujii  All rights reserved. 
 //  *
 //  * Licensed under the Apache License, Version 2.0 (the "License");
 //  * you may not use this file except in compliance with the License.
@@ -56,7 +56,10 @@ namespace Jiifureit.Dapper.OutsideSql.Utility
                     {
                         var name = names.Current;
                         var p = lookup[name];
-                        _CreateParameter(newParam, p, p.GetType(), name);
+                        if (p != null)
+                            _CreateParameter(newParam, p, p.GetType(), name);
+                        else
+                            _CreateParameter(newParam, null, new object().GetType(), name);
                     }
                 }
 
@@ -215,7 +218,7 @@ namespace Jiifureit.Dapper.OutsideSql.Utility
                 var rank = value.GetType().GetArrayRank();
                 for (var i = 0; i < rank; i++)
                 {
-                    var val = (value as Array).GetValue(i);
+                    var val = (value as Array)?.GetValue(i);
                     newParam.Add(name + (i + 1), val);
                 }
             }
