@@ -6,8 +6,8 @@
     <Authors>Hiroaki Fujii</Authors>
     <Product>Jiifureit.Dapper.OutsideSql</Product>
     <PackageId>Jiifureit.Dapper.OutsideSql</PackageId>
-    <Copyright>2018 - 2022 Hiroaki Fujii</Copyright>
-    <Version>0.9</Version>
+    <Copyright>2018 - 2024 Hiroaki Fujii</Copyright>
+    <Version>0.10.0</Version>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageProjectUrl>https://github.com/fujiihiroaki/Dapper.outsidesql</PackageProjectUrl>
     <RepositoryUrl>https://github.com/fujiihiroaki/Dapper.outsidesql</RepositoryUrl>
@@ -16,7 +16,11 @@
     <PackageLicenseUrl></PackageLicenseUrl>
     <SignAssembly>false</SignAssembly>
     <Description>Dapper extension adding outside sql function reading text file.</Description>
-    <PackageReleaseNotes>0.9.0             new support for Dapper 2.0.123. support for argument of List, Array, etc.
+    <PackageReleaseNotes>0.10.0           new support for Dapper 2.0.151,
+                     new support for Sqlite in both Microsoft.Data.Sqlite and System.Data,
+                     upgrade down Microsoft.Extensions.Logging to 2.1.1 due to 2.2 deprecated,
+                     add DB2 test class.
+0.9.0             new support for Dapper 2.0.123. support for argument of List, Array, etc.
 0.8.0             add .NET core 3.1, 5.0 support.
                      new support for Dapper 2.078, but no new features.
 0.7.1             gradedown Microsoft,Extensions.Logging to 2.2
@@ -38,6 +42,14 @@
     <PackageVersion>0.10.0</PackageVersion>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netstandard2.0|AnyCPU'">
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|netstandard2.0|AnyCPU'">
+    <WarningLevel>4</WarningLevel>
   </PropertyGroup>
 
   <ItemGroup>
