@@ -34,6 +34,7 @@ using Microsoft.Extensions.Logging.Debug;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NLog;
 using NLog.Extensions.Logging;
+using NLog.Targets;
 using ILogger = Microsoft.Extensions.Logging.ILogger;
 using Logger = Jiifureit.Dapper.OutsideSql.Log.Logger;
 using SQLiteConnection1 = System.Data.SQLite.SQLiteConnection;
@@ -56,7 +57,7 @@ public class SqliteTest
     public void TestSetup()
     {
         var path = $"{FILE_LOCATION}{DS}App1.config";
-        LogManager.LoadConfiguration(path);
+        LogManager.Setup().LoadConfigurationFromFile(path);
         
         var builder = new SqliteConnectionStringBuilder
         {

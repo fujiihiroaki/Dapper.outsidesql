@@ -55,7 +55,7 @@ namespace Dapper.OutsideSql.Test
         {
             var path = $"{FILE_LOCATION}{DS}App1.config";
             
-            LogManager.LoadConfiguration(path);
+            LogManager.Setup().LoadConfigurationFromFile(path);
             Logger.Category = "Dapper.OutsideSql.Test.OracleTest";
             Logger.Factory.AddProvider(new NLogLoggerProvider());
             Logger.Factory.AddProvider(new DebugLoggerProvider());

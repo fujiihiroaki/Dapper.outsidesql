@@ -31,7 +31,7 @@ namespace Dapper.OutsideSql.Test
         private const string FILE_LOCATION = @"C:\projects\Dapper.outsidesql\Dapper.OutsideSql.Test";
 
         private readonly Logger _logger
-            = LogManager.LoadConfiguration(FILE_LOCATION + @"\App1.config").GetCurrentClassLogger();
+            = LogManager.Setup().LoadConfigurationFromFile(FILE_LOCATION + @"\App1.config").GetCurrentClassLogger();
 
 
         [TestMethod]
@@ -57,6 +57,7 @@ namespace Dapper.OutsideSql.Test
                 list = conn.QueryLog<Test1>(sql);
                 Assert.AreEqual(14, list.AsList().Count, "Test Count3");
 
+                _logger.Debug("--- End ---");
             }
         }
 

@@ -59,7 +59,7 @@ namespace Dapper.OutsideSql.Test
         {
             var path = $"{FILE_LOCATION}{DS}App1.config";
             
-            LogManager.LoadConfiguration(path);
+            LogManager.Setup().LoadConfigurationFromFile(path);
             Logger.Category = "Dapper.OutsideSql.Test.PostgreSqlTest";
             
             var configureNamedOptions = new ConfigureNamedOptions<ConsoleLoggerOptions>(Logger.Category, null);
