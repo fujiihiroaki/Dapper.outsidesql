@@ -138,10 +138,9 @@ When Use NLog, Serilog, etc, you can use Log framwork's extension Library, for e
 C#:
 ```csharp
 var path = "<nlog.config path>";
-Jiifureit.Dapper.OutsideSql.Log.Logger.Factory
-    .AddNLog()
-    .AddConsole();
-NLog.LogManager.LoadConfiguration(path);
+Jiifureit.Dapper.OutsideSql.Log.Logger.Factory.AddProvider(new NLogLoggerProvider());
+Jiifureit.Dapper.OutsideSql.Log.Logger.Factory.AddProvider(new DebugLoggerProvider());
+NLog.LogManager.Setup().LoadConfigurationFromFile(path);
 var logger = Jiifureit.Dapper.OutsideSql.Log.Logger.CreateLogger<HogeTest>();
 
 var sql = "select EMP.EMPNO EmpNo,EMP.ENAME Enam from EMP where EMPNO >= /*Empno1*/500 and EMPNO <= /*Empno2*/1000";
@@ -155,10 +154,9 @@ Log:
 C#:
 ```csharp
 var path = "<nlog.config path>";
-Jiifureit.Dapper.OutsideSql.Log.Logger.Factory
-    .AddNLog()
-    .AddConsole();
-NLog.LogManager.LoadConfiguration(path);
+Jiifureit.Dapper.OutsideSql.Log.Logger.Factory.AddProvider(new NLogLoggerProvider());
+Jiifureit.Dapper.OutsideSql.Log.Logger.Factory.AddProvider(new DebugLoggerProvider());
+NLog.LogManager.Setup().LoadConfigurationFromFile(path);
 var logger = Jiifureit.Dapper.OutsideSql.Log.Logger.CreateLogger<HogeTest>();
 
 IDbTransaction tran = conn.BeginTransaction();
@@ -174,13 +172,17 @@ Log:
 
 
 ## DB Providers 
-- SQL Server
+- DB2
 - MySQL
-- PostgreSQL
 - Oracle  
+- PostgreSQL
+- SQL Server
+- SQLite (Microsoft.Data.Sqlite and System.Data.SQLite)
+
 are tested successfully.
 
-- DB2, odbc, sqlite is not tested.
+
+- odbc is not tested.
 
 ## License
 
