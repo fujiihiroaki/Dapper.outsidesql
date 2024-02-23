@@ -54,7 +54,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Dapper" Version="2.0.123" />
+    <PackageReference Include="Dapper" Version="2.0.151" />
     <PackageReference Include="Jint" Version="2.11.58" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="2.1.1" />
     <PackageReference Include="ReadJEnc" Version="1.3.1.2" />
